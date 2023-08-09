@@ -1,0 +1,77 @@
+<!-- templates/helpdesk/company_list.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Lista de Empresas - Helpdesk</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', Arial, sans-serif;
+            padding: 10px;
+            background-color: #f2f2f2;
+        }
+
+        h1 {
+            color: #007BFF; /* Cor azul para o título */
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        a {
+            color: #007BFF; /* Cor do link */
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .material-icons {
+            font-size: 18px;
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+
+        /* Botão secundário com estilo diferente */
+        .btn-secondary {
+            background-color: #007BFF; /* Cor de fundo do botão */
+            color: #fff; /* Cor do texto do botão */
+            border-radius: 4px; /* Borda arredondada do botão */
+            transition: background-color 0.2s;
+            padding: 10px 20px; /* Espaçamento interno do botão */
+            margin-right: 10px; /* Espaçamento direita para separar os botões */
+        }
+
+        .btn-secondary:hover {
+            background-color: #333; /* Cor de fundo do botão secundário ao passar o mouse */
+        }
+    </style>
+</head>
+<body>
+    <h1>Lista de Empresas</h1>
+    <ul>
+        {% for company in companies %}
+        <li>
+            <a href="{% url 'company_detail' company.id %}">
+                {{ company.name }}
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'company_create' %}" class="btn-secondary">Criar Nova Empresa</a>
+    <a href="{% url 'home' %}" class="btn-secondary">
+        <i class="material-icons">arrow_back</i> <!-- Ícone de voltar -->
+        Voltar para a página inicial
+    </a>
+</body>
+</html>

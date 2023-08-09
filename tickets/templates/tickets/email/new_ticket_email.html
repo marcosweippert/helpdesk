@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>New Ticket Created</title>
+    <style>
+        /* Style the email body as desired */
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            color: #007BFF; /* Blue color for the header */
+        }
+        .content {
+            padding: 20px;
+        }
+        .footer {
+            background-color: #f2f2f2;
+            padding: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <h1>New Ticket Created</h1>
+        <p>Hello {{ user.first_name }} {{ user.last_name }},</p>
+        <p>A new ticket has been created with the following details:</p>
+        <ul>
+            <li>Ticket ID: {{ ticket.id }}</li>
+            <li>Title: {{ ticket.title }}</li>
+            <li>Description: {{ ticket.description }}</li>
+            <li>Priority: {{ ticket.get_priority_display }}</li>
+            <li>Company: {{ ticket.company }}</li>
+        </ul>
+        <p>You can view the details of the ticket by visiting the following link:</p>
+        <p><a href="{{ ticket.get_absolute_url }}">{{ ticket.get_absolute_url }}</a></p>
+        <p>Best regards,<br>Your Support Team</p>
+    </div>
+    <div class="footer">
+        <p>This is an automated email. Please do not reply.</p>
+    </div>
+</body>
+</html>

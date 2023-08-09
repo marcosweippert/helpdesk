@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Configuration - Helpdesk</title>
+    <!-- Importe o Materialize CSS e a fonte dos ícones do Google -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', Arial, sans-serif;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #555;
+            margin-bottom: 20px;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+
+        li {
+            margin-bottom: 5px;
+        }
+
+        a {
+            color: #039be5;
+            text-decoration: none;
+            margin-left: 10px;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .material-icons {
+            font-size: 18px;
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1><span class="material-icons">settings</span> Configuration</h1>
+    {% if user.is_superuser %}
+    <ul>
+        <li>
+            <a href="{% url 'user_create' %}">
+                <span class="material-icons">person_add</span> <!-- Ícone de criar usuário -->
+                Criar Novo Usuário
+            </a>
+            <a href="{% url 'user_list' %}">
+                <span class="material-icons">list</span>
+                Listar Usuario
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'company_create' %}">
+                <span class="material-icons">business</span> <!-- Ícone de criar empresa -->
+                Criar Nova Empresa
+            </a>
+        </li>
+    </ul>
+    {% else %}
+    <p>Desculpe, esta página só está disponível para administradores (superusuários).</p>
+    {% endif %}
+
+    <!-- Importe o Materialize JavaScript (opcional) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+</body>
+</html>

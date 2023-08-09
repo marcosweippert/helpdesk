@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delete Delivery Calendar - Helpdesk</title>
+</head>
+<body>
+    <h1>Delete Delivery Calendar</h1>
+    <p>Are you sure you want to delete the delivery calendar for {{ calendar.client }} - {{ calendar.month }}?</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">Confirm Delete</button>
+    </form>
+    <a href="{% url 'delivery_calendar_detail' calendar.pk %}">Cancel</a>
+</body>
+</html>

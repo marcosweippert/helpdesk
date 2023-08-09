@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>All Open Tickets</title>
+    <!-- Importe o Materialize CSS e a fonte dos ícones do Google -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', Arial, sans-serif;
+            padding: 5px;
+            font-size: 12px;
+            background-color: #f2f2f2;
+        }
+
+        h1 {
+            color: #007BFF; /* Cor corrigida para azul */
+            margin-bottom: 20px;
+            font-size: 24px; /* Tamanho corrigido para 24px */
+            padding: 5px;
+            border-bottom: 1px solid #ccc; /* Adicionada borda na parte inferior do h1 */
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .material-icons {
+            font-size: 18px;
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+        .notification-icon {
+            color: green; /* Alterada para verde */
+            font-size: 16px;
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+
+        /* Botão menor */
+        .btn-small {
+            font-size: 12px;
+            padding: 0 10px;
+            height: 24px;
+            line-height: 24px;
+        }
+
+        /* Estilos para seguir o Material Design */
+        a, button {
+            color: #007BFF; /* Cor do link e do botão */
+            cursor: pointer;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .btn {
+            background-color: #007BFF; /* Cor de fundo do botão */
+            color: #fff; /* Cor do texto do botão */
+            border-radius: 4px; /* Borda arredondada do botão */
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background-color: #0056b3; /* Cor de fundo do botão ao passar o mouse */
+        }
+
+        .btn-small {
+            font-size: 12px; /* Tamanho da fonte do botão menor */
+            padding: 0 10px;
+            height: 24px;
+            line-height: 24px;
+        }
+
+        .btn-small:hover {
+            background-color: #0056b3; /* Cor de fundo do botão menor ao passar o mouse */
+        }
+
+        /* Estilos para os status */
+        .status-open {
+            color: green;
+            font-weight: bold;
+        }
+
+        .status-in-progress {
+            color: orange;
+            font-weight: bold;
+        }
+
+        .status-closed {
+            color: red;
+            font-weight: bold;
+        }
+
+        .status-new {
+            color: blue; /* Alterado para azul */
+            font-weight: bold;
+        }
+
+        .status-waiting-contact {
+            color: #FFC107; /* Alterado para amarelo escuro */
+            font-weight: bold;
+        }
+
+        .status-waiting-us {
+            color: #00BFFF; /* Alterado para azul claro */
+            font-weight: bold;
+        }
+
+        /* Novo estilo para o select de status (menor) */
+        .status-select-smaller {
+            width: 80px; /* Reduza o tamanho do width para ajustar o tamanho do select */
+            height: 20px;
+            font-size: 10px; /* Mantenha a fonte menor para o tamanho reduzido */
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 1px 5px;
+        }
+        /* Novo estilo para a coluna de status */
+        .status-column {
+            position: relative;
+        }
+
+        /* Posicionamento do select */
+        .status-select {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+        }
+
+        /* Exibe o select apenas quando estiver dentro da coluna de status */
+        .status-column:hover .status-select {
+            opacity: 1;
+        }
+
+        /* Estilo para a contagem de comentários */
+        .comments-count {
+            color: green;
+            font-weight: bold;
+            font-size: 14px;
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+        /* Estilo para a mensagem de aviso */
+        .status-warning {
+            color: red;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1><span class="material-icons">assignment</span> All Open Tickets</h1>
+    <div>
+        <label for="status-filter">Filter by Status:</label>
+        <select id="status-filter" onchange="applyFilters()">
+            <option value="">All</option>
+            <option value="Open">Open</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Closed">Closed</option>
+            <option value="New">New</option>
+            <option value="Waiting on contact">Waiting on contact</option>
+            <option value="Waiting on us">Waiting on us</option>
+        </select>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Company</th>
+                <th>Partner</th>
+                <th>Title</th>
+                <th>Requester</th>
+                <th>Owner</th>
+                <th>Created At</th>
+                <th>SLA</th>
+                <th>Status</th>
+                <th>Comments</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ticket in tickets %}
+            <tr>
+                <td>
+                    <a href="{% url 'ticket_detail' ticket.id %}">{{ ticket.id }}</a>
+                </td>
+                <td>{{ ticket.company.abreviation }}</td>
+                <td>{{ ticket.company.partner }}</td>
+                <td>
+                    <a href="{% url 'ticket_detail' ticket.id %}">{{ ticket.title }}</a>
+                </td>
+                <td class="requester-text" data-ticket-requester="{{ ticket.created_by.first_name }} {{ ticket.created_by.last_name }}">{{ ticket.created_by.first_name }} {{ ticket.created_by.last_name }}</td>
+                <td class="owner-text" data-ticket-owner="{{ ticket.assigned_to.first_name }} {{ ticket.assigned_to.last_name }}">{{ ticket.assigned_to.first_name }} {{ ticket.assigned_to.last_name }}</td>
+                <td class="created-at-text" data-ticket-created-at="{{ ticket.created_at|date:'d/m/Y H:i' }}">{{ ticket.created_at|date:'d/m/Y H:i' }}</td>
+                <td class="sla-text" data-ticket-sla="{{ ticket.sla_date|date:'d/m/Y H:i' }}">{{ ticket.sla_date|date:'d/m/Y H:i' }}</td>
+                <td class="status-column">
+                    {% if ticket.status == 'Open' %}
+                        <span class="status-open status-text" data-ticket-id="{{ ticket.id }}" data-ticket-status="Open">{{ ticket.status }}</span>
+                    {% elif ticket.status == 'In Progress' %}
+                        <span class="status-in-progress status-text" data-ticket-id="{{ ticket.id }}" data-ticket-status="In Progress">{{ ticket.status }}</span>
+                    {% elif ticket.status == 'Closed' %}
+                        <span class="status-closed status-text" data-ticket-id="{{ ticket.id }}" data-ticket-status="Closed">{{ ticket.status }}</span>
+                    {% elif ticket.status == 'New' %}
+                        <span class="status-new status-text" data-ticket-id="{{ ticket.id }}" data-ticket-status="New">{{ ticket.status }}</span>
+                    {% elif ticket.status == 'Waiting on contact' %}
+                        <span class="status-waiting-contact status-text" data-ticket-id="{{ ticket.id }}" data-ticket-status="Waiting on contact">{{ ticket.status }}</span>
+                    {% elif ticket.status == 'Waiting on us' %}
+                        <span class="status-waiting-us status-text" data-ticket-id="{{ ticket.id }}" data-ticket-status="Waiting on us">{{ ticket.status }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if ticket.comments_count > 0 %}
+                    <span class="comments-count material-icons">chat</span>
+                    <a href="{% url 'ticket_detail' ticket.id %}">({{ ticket.comments_count }})</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{% url 'home' %}" class="btn">
+        <i class="material-icons">arrow_back</i>
+        Home
+    </a>
+    <a href="{% url 'ticket_create' %}" class="btn">
+        <i class="material-icons">add_circle</i>
+        New Ticket
+    </a>
+    <!-- Importe o jQuery e o Materialize JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+        function applyFilters() {
+            var statusFilter = $('#status-filter').val();
+
+            $('tbody tr').each(function() {
+                var status = $(this).find('.status-text').data('ticket-status');
+                var requester = $(this).find('.requester-text').data('ticket-requester');
+                var owner = $(this).find('.owner-text').data('ticket-owner');
+                var slaDate = $(this).find('.sla-text').data('ticket-sla');
+
+                var showRow = true;
+                if (statusFilter && status !== statusFilter) {
+                    showRow = false;
+                }
+
+                // Adicione aqui a lógica para os outros filtros (requester, owner, slaDate)
+                // Use a variável showRow para controlar se a linha deve ser exibida ou não.
+
+                if (showRow) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        }
+
+        $(document).ready(function() {
+            applyFilters();
+        });
+    </script>
+</body>
+</html>

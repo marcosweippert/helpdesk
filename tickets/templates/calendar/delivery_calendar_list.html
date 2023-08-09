@@ -1,0 +1,106 @@
+<!-- delivery_calendar_list.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delivery Calendars - Helpdesk</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', Arial, sans-serif;
+            padding: 20px;
+            background-color: #f2f2f2;
+        }
+
+        h1 {
+            color: #007BFF;
+            margin-bottom: 20px;
+            
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 15px;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-size: 13px;
+        }
+
+        a {
+            text-decoration: none;
+            color: #007BFF;
+            display: block;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .no-calendars {
+            color: #555;
+        }
+
+        .create-link {
+            display: block;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Delivery Calendars</h1>
+    {% if calendars %}
+        <table>
+            <tr>
+                <th>Client</th>
+                <th>Competence</th>
+                <th>Pay Period</th>
+                <th>CAM</th>
+                <th>Analyst</th>
+                <th>Changes</th>
+                <th>Payroll Preview</th>
+                <th>Approval</th>
+                <th>Net Salaries</th>
+                <th>Taxes</th>
+                <th>Accounting</th>
+                <th>Next Month Vacations</th>
+                <th>eSocial Delivery</th>
+                <th>View Details</th>
+            </tr>
+            {% for calendar in calendars %}
+                <tr>
+                    <td>{{ calendar.client.abreviation }}</td>
+                    <td>{{ calendar.month_date|date:"m/Y"}}</td>
+                    <td>{{ calendar.pay_period }}</td>
+                    <td>{{ calendar.cam.first_name }} {{ calendar.cam.last_name }}</td>
+                    <td>{{ calendar.analyst.first_name}} {{ calendar.analyst.last_name }}</td>
+                    <td>{{ calendar.changes_date|default:"N/A"|date:"d/m/Y" }}</td>
+                    <td>{{ calendar.payroll_preview_date|default:"N/A"|date:"d/m/Y" }}</td>
+                    <td>{{ calendar.approval_date|default:"N/A"|date:"d/m/Y" }}</td>
+                    <td>{{ calendar.net_salaries_date|default:"N/A"|date:"d/m/Y" }}</td>
+                    <td>{{ calendar.taxes_date|default:"N/A"|date:"d/m/Y" }}</td>
+                    <td>{{ calendar.accounting_date|default:"N/A"|date:"d/m/Y" }}</td>
+                    <td>{{ calendar.next_month_vacations_date|default:"N/A"|date:"d/m/Y" }}</td>
+                    <td>{{ calendar.esocial_delivery_date|default:"N/A"|date:"d/m/Y" }}</td>
+                    <td><a href="{% url 'delivery_calendar_detail' calendar.pk %}">View Details</a></td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p class="no-calendars">No delivery calendars found.</p>
+    {% endif %}
+    <a href="{% url 'delivery_calendar_create' %}" class="create-link">Create New Delivery Calendar</a>
+    <a href="{% url 'home' %}" class="create-link">Home</a>
+</body>
+</html>

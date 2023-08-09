@@ -1,0 +1,21 @@
+<!-- templates/users/user_confirm_delete.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirmar Exclusão</title>
+
+  <!-- Importe a fonte dos ícones do Google -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+</head>
+<body>
+  <h1>Confirmar Exclusão</h1>
+  <p>Deseja realmente excluir o usuário "{{ user.username }}"?</p>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit"><i class="material-icons">delete</i> Confirmar</button>
+  </form>
+</body>
+</html>

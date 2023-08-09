@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Alterar Atribuído - Helpdesk</title>
+    <!-- Importe o Materialize CSS e a fonte dos ícones do Google -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            padding: 20px;
+        }
+
+        h2 {
+            font-family: 'Poppins', sans-serif;
+            color: #555;
+            margin-bottom: 20px;
+            font-size: 25px;
+        }
+
+        .change-assigned-form {
+            max-width: 400px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .change-assigned-form select {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .change-assigned-form button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .change-assigned-form button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h2><span class="material-icons">create</span> Alterar Atribuído</h2>
+    <form method="post" class="change-assigned-form">
+        {% csrf_token %}
+        <label for="assigned_to">Assigned To:</label>
+        <select name="assigned_to" id="assigned_to">
+            <option value="" {% if not form.assigned_to.value %}selected{% endif %}>Não atribuído</option>
+            {% for user in form.assigned_to.field.queryset %}
+                <option value="{{ user.id }}" {% if form.assigned_to.value == user.id %}selected{% endif %}>{{ user.username }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Alterar</button>
+    </form>
+
+    <a href="{% url 'ticket_detail' ticket_id=ticket.id %}">
+        <i class="material-icons">arrow_back</i> <!-- Ícone de voltar -->
+        Voltar para detalhes do ticket
+    </a>
+
+    <!-- Importe o Materialize JavaScript (opcional) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+</body>
+</html>
