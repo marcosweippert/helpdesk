@@ -94,7 +94,6 @@ class Ticket(models.Model):
         ('Administration', 'Administration'),
         ('Services', 'Services'),
         ('Accounting', 'Accounting'),
-
     )
     TYPE_CHOICES = (
         #Operation
@@ -180,7 +179,6 @@ class DeliveryCalendar(models.Model):
     esocial_delivery_date = models.DateField(null=True, blank=True)
 
 class Deliverable(models.Model):
-
     DELIVERY_CHOICES = (
         #Operation
         ('Payroll', 'Payroll'),
@@ -191,7 +189,6 @@ class Deliverable(models.Model):
         ('Taxes', 'Taxes'),
         ('Annual Statutary Declarations', 'Annual Statutary Declarations'),
         ('Accounting', 'Accounting'),
-
     )
     FREQUENCY_CHOICES = (
         #Operation
@@ -215,3 +212,61 @@ class Deliverable(models.Model):
 
     def __str__(self):
         return f"Deliverables for {self.company.name}"
+    
+class Workorder(models.Model):
+    DEPARTMENT_CHOICES = (
+        ('Services', 'Services'),
+        ('Accounting', 'Accounting'),
+    )
+    STATUS_CHOICES = (
+        ('New', 'New'),
+        ('Waiting on contact', 'Waiting on contact'),
+        ('Waiting on us', 'Waiting on us'),
+        ('Closed', 'Closed'),
+        ('Cancelled', 'Cancelled'),
+        ('Approved by CAM', 'Approved by CAM'),
+        ('Waiting Analyst', 'Waiting Analyst'),
+        ('Approved by Analyst', 'Approved by Analyst'),
+        ('Waiting CAM', 'Waiting CAM'),
+        ('In Progress', 'In Progress'),
+        ('Pending', 'Pending'),
+    )
+    TYPE_CHOICES = (
+        ('Work Order', 'Work Order'),
+        ('RSA', 'RSA'),
+
+    )
+    PRIORITY_CHOICES = (
+        ('Low', 'Low'),
+        ('Medium', 'Medium'),
+        ('High', 'High'),
+        ('Urgent', 'Urgent'),
+        ('Scheduled', 'Scheduled'),
+    )
+    APPROVAL_CHOICES = (
+        ('Approve', 'Approve'),
+        ('Reprove', 'Reprove'),
+        ('Approved by CAM', 'Approved by CAM'),
+        ('Approved by Analyst', 'Approved by Analyst'),
+    )
+
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    assigned_to = models.ForeignKey('CustomUser', on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_workorder')
+    created_by = models.ForeignKey('CustomUser', on_delete=models.CASCADE, related_name='created_workorder')
+    department = models.CharField(max_length=100, choices=DEPARTMENT_CHOICES, null=True, blank=True, default='Services')
+    hours = models.DecimalField(max_digits=5, decimal_places=2)
+    cam_approval = models.CharField(max_length=30, choices=APPROVAL_CHOICES, null=True, blank=True)
+    analyst_approval = models.CharField(max_length=30, choices=APPROVAL_CHOICES, null=True, blank=True)
+    billing = models.CharField(max_length=50)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='New')
+    sla_date = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    type = models.CharField(max_length=100, choices=TYPE_CHOICES, null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+    priority = models.CharField(max_length=15, choices=PRIORITY_CHOICES, default='Medium')
+
+
+
+    def __str__(self):
+        return f"Workorder for {self.company.name}"

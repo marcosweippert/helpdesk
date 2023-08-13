@@ -144,8 +144,20 @@
                 <button class="waves-effect waves-light btn"><i class="material-icons left">receipt</i>Delivery</button>
             </a>
             <ul id="dropdown-delivery" class="dropdown-content">
-                <li><a href="{% url 'delivery_calendar_create' %}">Delivery Calendar Create</a></li>
+                <li><a href="{% url 'delivery_calendar_create' %}">Create Delivery Calendar</a></li>
                 <li><a href="{% url 'delivery_calendar_list' %}">Delivery Calendar List</a></li>
+            </ul>
+
+            <a class="dropdown-trigger" href="#" data-target="dropdown-workorder">
+                <button class="waves-effect waves-light btn"><i class="material-icons left">receipt</i>Work Order</button>
+            </a>
+            <ul id="dropdown-workorder" class="dropdown-content">
+                <li><a href="{% url 'work_order_dashboard' %}">WO - Dashboard</a></li>
+                <li><a href="{% url 'create_work_order' %}">Create WO</a></li>
+                <li><a href="{% url 'analyze_work_order' %}">Analyze WO</a></li>
+                <li><a href="{% url 'rework_work_order' %}">Rework WO</a></li>
+                <li><a href="{% url 'approve_work_order' %}">Approve WO</a></li>
+
             </ul>
         </div>
     </div>

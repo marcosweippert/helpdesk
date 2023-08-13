@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import CustomUser, Ticket, Company, DeliveryCalendar
-from .forms import UserForm, TicketForm, CompanyForm
+from .models import CustomUser, Ticket, Company, DeliveryCalendar, Workorder
+from .forms import UserForm, TicketForm, CompanyForm, WorkorderForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login
 from .models import CustomUser
@@ -658,3 +658,85 @@ def delivery_calendar_delete(request, pk):
         return redirect('delivery_calendar_list')
     return render(request, 'calendar/delivery_calendar_confirm_delete.html', {'calendar': calendar})
 
+
+
+@login_required
+def create_work_order(request):
+    if request.method == 'POST':
+        form = WorkorderForm(request.POST)
+        if form.is_valid():
+            work_order = form.save(commit=False)
+            work_order.created_by = request.user
+            work_order.save()
+            return redirect('analyze_work_order')
+        else:
+            print("Form is not valid:", form.errors)
+    else:
+        form = WorkorderForm()
+
+    companies = Company.objects.all()
+    users = CustomUser.objects.all()
+
+    context = {
+        'form': form,
+        'companies': companies,
+        'users': users,
+    }
+
+    return render(request, 'workorder/create_workorder.html', context)
+
+def analyze_work_order(request):
+    if request.method == 'POST':
+        workorder_id = request.POST.get('workorder_id')
+        cam_approval = request.POST.get('cam_approval')
+        workorder = Workorder.objects.get(id=workorder_id)
+        
+        if cam_approval == 'Approve':
+            workorder.status = 'In Progress'
+            workorder.cam_approval = 'Approved'
+            workorder.save()
+            return redirect('execute_work_order')
+        elif cam_approval == 'Reprove':
+            workorder.status = 'Rework'
+            workorder.cam_approval = 'Reproved'
+            workorder.assigned_to = workorder.created_by  # Return to the analyst who created the work order
+            workorder.save()
+            return redirect('rework_work_order')
+
+    workorders = Workorder.objects.filter(status='New')
+
+    context = {
+        'workorders': workorders,
+        'users': CustomUser.objects.all(),  # Pass the list of users for Assigned To field
+    }
+
+    return render(request, 'workorder/analyze_workorder.html', context)
+
+
+def approve_work_order(request):
+    # Listar as Work Orders aprovadas pelo Setor de Serviços
+    if request.method == 'POST':
+        # Processar a aprovação da Work Order
+        # Redirecionar para a próxima etapa ou rework se necessário
+        return redirect('execute_work_order')
+    return render(request, 'workorder/approve_workorder.html', {'workorders': Workorder.objects.filter(status='Waiting on us')})
+
+def execute_work_order(request):
+    # Listar as Work Orders aprovadas pelo Cliente
+    if request.method == 'POST':
+        # Processar a execução da Work Order
+        # Redirecionar para a próxima etapa ou rework se necessário
+        return redirect('closed')
+    return render(request, 'workorder/execute_workorder.html', {'workorders': Workorder.objects.filter(status='Waiting on contact')})
+
+def rework_work_order(request):
+    # Listar as Work Orders que precisam de retrabalho
+    if request.method == 'POST':
+        # Processar o retrabalho da Work Order
+        # Redirecionar para a próxima etapa
+        return redirect('analyze_work_order')
+    return render(request, 'workorder/rework_workorder.html', {'workorders': Workorder.objects.filter(status='Cancelled')})
+
+def work_order_dashboard(request):
+    workorders = Workorder.objects.all()
+    return render(request, 'workorder/workorder_dashboard.html', {'workorders': workorders})

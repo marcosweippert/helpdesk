@@ -1,7 +1,7 @@
 # forms.py (aplicativo de usuários)
 
 from django import forms
-from .models import CustomUser, Company, Ticket, Comment, DeliveryCalendar, Deliverable
+from .models import CustomUser, Company, Ticket, Comment, DeliveryCalendar, Deliverable, Workorder
 
 class UserForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput)
@@ -53,3 +53,8 @@ class DeliverableForm(forms.ModelForm):
     class Meta:
         model = Deliverable
         fields = ['payroll_report', 'naming_convention', 'delivery_format', 'delivery_type', 'frequency', 'delivery_date']
+
+class WorkorderForm(forms.ModelForm):
+    class Meta:
+        model = Workorder
+        fields = ['company', 'department', 'type', 'hours', 'priority']
