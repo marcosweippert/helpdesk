@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Approve Work Order - Helpdesk</title>
+    <title>Work Order Report - Helpdesk</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
@@ -161,51 +161,28 @@
     </style>
 </head>
 <body>
-    <h1>Approve Work Order</h1>
-    {% if workorders %}
-    <form method="post">
-        {% csrf_token %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Company</th>
-                    <th>Assigned To</th>
-                    <th>Department</th>
-                    <th>Type</th>
-                    <th>Hours</th>
-                    <th>Cam Approval</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for workorder in workorders %}
-                <tr>
-                    <td>{{ workorder.company }}</td>
-                    <td>{{ workorder.assigned_to }}</td>
-                    <td>{{ workorder.department }}</td>
-                    <td>{{ workorder.type }}</td>
-                    <td>{{ workorder.hours }}</td>
-                    <td>{{ workorder.cam_approval }}</td>
-                    <td>
-                        {% if workorder.status == 'New' %}
-                        <select name="cam_approval">
-                            <option value="Approve">Approve</option>
-                            <option value="Reprove">Reprove</option>
-                        </select>
-                        <input type="hidden" name="workorder_id" value="{{ workorder.id }}">
-                        <input type="submit" value="Submit" class="btn">
-                        {% else %}
-                        <p>{{ workorder.status }}</p>
-                        {% endif %}
-                    </td>
-                </tr>
+    <h1>Work Order Report</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Analyst</th>
+                <th>Month</th>
+                <th>Total Hours</th>
+                <th>Billing Yes Count</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for analyst in analyst_data %}
+            <tr>
+                <td>{{ analyst.analyst }}</td>
+                {% for month in analyst.months %}
+                <td>{{ month.month }}</td>
+                <td>{{ month.total_hours }}</td>
+                <td>{{ month.billing_count }}</td>
                 {% endfor %}
-            </tbody>
-        </table>
-    </form>
-    {% else %}
-    <p>No work orders to approve.</p>
-    {% endif %}
-    <a href="{% url 'create_work_order' %}" class="btn-secondary"><span class="material-icons">arrow_back</span>Back to Create Work Order</a>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </body>
 </html>

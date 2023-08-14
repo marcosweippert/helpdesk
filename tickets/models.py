@@ -249,6 +249,11 @@ class Workorder(models.Model):
         ('Approved by CAM', 'Approved by CAM'),
         ('Approved by Analyst', 'Approved by Analyst'),
     )
+    BILLING_CHOICES = (
+        ('Yes', 'Yes'),
+        ('No', 'No'),
+
+    )
 
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     assigned_to = models.ForeignKey('CustomUser', on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_workorder')
@@ -257,7 +262,7 @@ class Workorder(models.Model):
     hours = models.DecimalField(max_digits=5, decimal_places=2)
     cam_approval = models.CharField(max_length=30, choices=APPROVAL_CHOICES, null=True, blank=True)
     analyst_approval = models.CharField(max_length=30, choices=APPROVAL_CHOICES, null=True, blank=True)
-    billing = models.CharField(max_length=50)
+    billing = models.CharField(max_length=30, choices=BILLING_CHOICES, null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='New')
     sla_date = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

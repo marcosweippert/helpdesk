@@ -50,6 +50,8 @@ import os
 import uuid
 from django.http import HttpResponse
 from django.conf import settings
+from django.db.models.functions import ExtractMonth
+from django.db.models import Sum, Count
 
 def get_greeting(request):
     now = datetime.now()
@@ -689,17 +691,20 @@ def analyze_work_order(request):
     if request.method == 'POST':
         workorder_id = request.POST.get('workorder_id')
         cam_approval = request.POST.get('cam_approval')
+        billing = request.POST.get('billing')  # Obtém o valor selecionado para Billing
         workorder = Workorder.objects.get(id=workorder_id)
         
         if cam_approval == 'Approve':
             workorder.status = 'In Progress'
             workorder.cam_approval = 'Approved'
+            workorder.billing = billing  # Atualiza o valor de Billing
             workorder.save()
             return redirect('execute_work_order')
         elif cam_approval == 'Reprove':
             workorder.status = 'Rework'
             workorder.cam_approval = 'Reproved'
-            workorder.assigned_to = workorder.created_by  # Return to the analyst who created the work order
+            workorder.assigned_to = workorder.created_by
+            workorder.billing = billing  # Atualiza o valor de Billing
             workorder.save()
             return redirect('rework_work_order')
 
@@ -707,36 +712,100 @@ def analyze_work_order(request):
 
     context = {
         'workorders': workorders,
-        'users': CustomUser.objects.all(),  # Pass the list of users for Assigned To field
+        'users': CustomUser.objects.all(),
     }
 
     return render(request, 'workorder/analyze_workorder.html', context)
 
 
-def approve_work_order(request):
-    # Listar as Work Orders aprovadas pelo Setor de Serviços
-    if request.method == 'POST':
-        # Processar a aprovação da Work Order
-        # Redirecionar para a próxima etapa ou rework se necessário
-        return redirect('execute_work_order')
-    return render(request, 'workorder/approve_workorder.html', {'workorders': Workorder.objects.filter(status='Waiting on us')})
-
+@login_required
 def execute_work_order(request):
-    # Listar as Work Orders aprovadas pelo Cliente
     if request.method == 'POST':
-        # Processar a execução da Work Order
-        # Redirecionar para a próxima etapa ou rework se necessário
-        return redirect('closed')
-    return render(request, 'workorder/execute_workorder.html', {'workorders': Workorder.objects.filter(status='Waiting on contact')})
+        workorder_id = request.POST.get('workorder_id')
+        workorder = Workorder.objects.get(id=workorder_id)
+        workorder.status = 'Executed'
+        workorder.save()
+        messages.success(request, 'Work Order has been executed.')
+        return redirect('work_order_dashboard')
+    
+    workorders = Workorder.objects.filter(status='In Progress')
 
+    context = {
+        'workorders': workorders,
+    }
+
+    return render(request, 'workorder/execute_workorder.html', context)
+
+@login_required
 def rework_work_order(request):
-    # Listar as Work Orders que precisam de retrabalho
     if request.method == 'POST':
-        # Processar o retrabalho da Work Order
-        # Redirecionar para a próxima etapa
+        workorder_id = request.POST.get('workorder_id')
+        workorder = Workorder.objects.get(id=workorder_id)
+        workorder.status = 'New'  # Altera o status para "New"
+        workorder.cam_approval = 'Reproved'
+        workorder.assigned_to = workorder.created_by  # Return to the analyst who created the work order
+        workorder.save()
+        messages.success(request, 'Work Order has been sent for rework.')
         return redirect('analyze_work_order')
-    return render(request, 'workorder/rework_workorder.html', {'workorders': Workorder.objects.filter(status='Cancelled')})
+
+    workorders = Workorder.objects.filter(status='Rework')
+
+    context = {
+        'workorders': workorders,
+        'users': CustomUser.objects.all(),
+    }
+
+    return render(request, 'workorder/rework_workorder.html', context)
+
+
 
 def work_order_dashboard(request):
     workorders = Workorder.objects.all()
-    return render(request, 'workorder/workorder_dashboard.html', {'workorders': workorders})
+
+    context = {
+        'workorders': workorders,
+    }
+
+    return render(request, 'workorder/workorder_dashboard.html', context)
+
+@login_required
+def edit_work_order(request, workorder_id):
+    workorder = get_object_or_404(Workorder, id=workorder_id)
+
+    if request.method == 'POST':
+        form = WorkorderForm(request.POST, instance=workorder)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Work Order has been updated.')
+            return redirect('rework_work_order')
+    else:
+        form = WorkorderForm(instance=workorder)
+
+    context = {
+        'form': form,
+    }
+
+    return render(request, 'workorder/edit_workorder.html', context)
+
+def report_workorder(request):
+    analysts = CustomUser.objects.filter(groups__name='Analyst')
+    months = Workorder.objects.annotate(month=ExtractMonth('created_at')).values('month').distinct()
+    
+    data = []
+    for analyst in analysts:
+        analyst_data = {'analyst': analyst, 'months': []}
+        for month in months:
+            workorders = Workorder.objects.filter(created_by=analyst, created_at__month=month['month'])
+            total_hours = workorders.aggregate(Sum('hours'))['hours__sum']
+            billing_count = workorders.filter(billing='Yes').count()
+            analyst_data['months'].append({
+                'month': month['month'],
+                'total_hours': total_hours or 0,
+                'billing_count': billing_count,
+            })
+        data.append(analyst_data)
+    
+    context = {
+        'analyst_data': data,
+    }
+    return render(request, 'workorder/report_workorder.html', context)

@@ -44,10 +44,12 @@ urlpatterns = [
 
     path('create_work_order/', views.create_work_order, name='create_work_order'),
     path('analyze_work_order/', views.analyze_work_order, name='analyze_work_order'),
-    path('approve_work_order/', views.approve_work_order, name='approve_work_order'),
     path('execute_work_order/', views.execute_work_order, name='execute_work_order'),
     path('rework_work_order/', views.rework_work_order, name='rework_work_order'),
     path('work_order_dashboard/', views.work_order_dashboard, name='work_order_dashboard'),
+    path('edit_work_order/<int:workorder_id>/', views.edit_work_order, name='edit_work_order'),
+    path('report_workorder/', views.report_workorder, name='report_work_order'),
+
 
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

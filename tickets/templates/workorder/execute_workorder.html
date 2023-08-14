@@ -163,42 +163,40 @@
 <body>
     <h1>Execute Work Order</h1>
     {% if workorders %}
-    <form method="post">
-        {% csrf_token %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Company</th>
-                    <th>Assigned To</th>
-                    <th>Department</th>
-                    <th>Type</th>
-                    <th>Hours</th>
-                    <th>Cam Approval</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for workorder in workorders %}
-                <tr>
-                    <td>{{ workorder.company }}</td>
-                    <td>{{ workorder.assigned_to }}</td>
-                    <td>{{ workorder.department }}</td>
-                    <td>{{ workorder.type }}</td>
-                    <td>{{ workorder.hours }}</td>
-                    <td>{{ workorder.cam_approval }}</td>
-                    <td>
-                        {% if workorder.status == 'In Progress' %}
+    <table>
+        <thead>
+            <tr>
+                <th>Company</th>
+                <th>Assigned To</th>
+                <th>Department</th>
+                <th>Type</th>
+                <th>Hours</th>
+                <th>Cam Approval</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for workorder in workorders %}
+            {% if workorder.status == 'In Progress' %}
+            <tr>
+                <td>{{ workorder.company }}</td>
+                <td>{{ workorder.assigned_to }}</td>
+                <td>{{ workorder.department }}</td>
+                <td>{{ workorder.type }}</td>
+                <td>{{ workorder.hours }}</td>
+                <td>{{ workorder.cam_approval }}</td>
+                <td>
+                    <form method="post">
+                        {% csrf_token %}
                         <input type="hidden" name="workorder_id" value="{{ workorder.id }}">
                         <input type="submit" value="Complete" class="btn">
-                        {% else %}
-                        <p>{{ workorder.status }}</p>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </form>
+                    </form>
+                </td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
     {% else %}
     <p>No work orders to execute.</p>
     {% endif %}

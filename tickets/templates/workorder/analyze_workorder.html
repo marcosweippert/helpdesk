@@ -175,6 +175,7 @@
                     <th>Type</th>
                     <th>Hours</th>
                     <th>Cam Approval</th>
+                    <th>Billing</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -182,8 +183,8 @@
                 {% for workorder in workorders %}
                 <tr>
                     <td>{{ workorder.company }}</td>
-                    <td>{{ workorder.assigned_to.first_name }} {{ workorder.assigned_to.last_name }}</td>
-                    <td>{{ workorder.created_by.first_name }} {{ workorder.created_by.last_name }}</td>
+                    <td>{{ workorder.assigned_to }}</td>
+                    <td>{{ workorder.created_by }}</td>
                     <td>{{ workorder.department }}</td>
                     <td>{{ workorder.type }}</td>
                     <td>{{ workorder.hours }}</td>
@@ -192,6 +193,13 @@
                             <option value="Approve">Approve</option>
                             <option value="Reprove">Reprove</option>
                         </select>
+                    </td>
+                    <td>
+                        <select name="billing">
+                            <option value="Yes" {% if workorder.billing == 'Yes' %}selected{% endif %}>Yes</option>
+                            <option value="No" {% if workorder.billing == 'No' %}selected{% endif %}>No</option>
+                        </select>
+                    </td>
                     </td>
                     <td>
                         <input type="hidden" name="workorder_id" value="{{ workorder.id }}">
@@ -205,7 +213,7 @@
     {% else %}
     <p>No work orders to analyze.</p>
     {% endif %}
-    <a href="{% url 'approve_work_order' %}" class="btn-secondary"><span class="material-icons">arrow_back</span>Approve Work Order</a>
+    <a href="{% url 'home' %}" class="btn-secondary"><span class="material-icons">arrow_back</span>Home</a>
     <a href="{% url 'create_work_order' %}" class="btn-secondary"><span class="material-icons">arrow_back</span>Back to Create Work Order</a>
 </body>
 </html>

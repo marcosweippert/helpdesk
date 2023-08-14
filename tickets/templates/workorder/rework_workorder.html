@@ -163,46 +163,39 @@
 <body>
     <h1>Rework Work Order</h1>
     {% if workorders %}
-    <form method="post">
-        {% csrf_token %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Company</th>
-                    <th>Assigned To</th>
-                    <th>Department</th>
-                    <th>Type</th>
-                    <th>Hours</th>
-                    <th>Cam Approval</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for workorder in workorders %}
-                <tr>
-                    <td>{{ workorder.company }}</td>
-                    <td>{{ workorder.assigned_to }}</td>
-                    <td>{{ workorder.department }}</td>
-                    <td>{{ workorder.type }}</td>
-                    <td>{{ workorder.hours }}</td>
-                    <td>{{ workorder.cam_approval }}</td>
-                    <td>
-                        {% if workorder.status == 'Rework' %}
-                        <select name="cam_approval">
-                            <option value="Approve">Approve</option>
-                            <option value="Reprove">Reprove</option>
-                        </select>
+    <table>
+        <thead>
+            <tr>
+                <th>Company</th>
+                <th>Assigned To</th>
+                <th>Department</th>
+                <th>Type</th>
+                <th>Hours</th>
+                <th>Cam Approval</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for workorder in workorders %}
+            <tr>
+                <td>{{ workorder.company }}</td>
+                <td>{{ workorder.assigned_to }}</td>
+                <td>{{ workorder.department }}</td>
+                <td>{{ workorder.type }}</td>
+                <td>{{ workorder.hours }}</td>
+                <td>{{ workorder.cam_approval }}</td>
+                <td>
+                    <form method="post">
+                        {% csrf_token %}
                         <input type="hidden" name="workorder_id" value="{{ workorder.id }}">
-                        <input type="submit" value="Submit" class="btn">
-                        {% else %}
-                        <p>{{ workorder.status }}</p>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </form>
+                        <input type="submit" value="Send for Rework" class="btn">
+                        <a href="{% url 'edit_work_order' workorder.id %}" class="btn-secondary"><span class="material-icons">edit</span>Edit</a>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
     {% else %}
     <p>No work orders to rework.</p>
     {% endif %}

@@ -171,8 +171,10 @@
                 <th>Company</th>
                 <th>Department</th>
                 <th>Status</th>
-                <th>Analyst Approval</th>
+                <th>Analyst</th>
                 <th>CAM Approval</th>
+                <th>CAM</th>
+                <th>Hours</th>
                 <th>Billing</th>
             </tr>
         </thead>
@@ -182,9 +184,11 @@
                 <td>{{ workorder.company }}</td>
                 <td>{{ workorder.get_department_display }}</td>
                 <td>{{ workorder.get_status_display }}</td>
-                <td>{% if workorder.analyst_approval %}Approved{% else %}Pending{% endif %}</td>
+                <td>{{ workorder.assigned_to }}</td>
                 <td>{{ workorder.cam_approval }}</td>
-                <td>{% if workorder.billing %}Billed{% else %}Not Billed{% endif %}</td>
+                <td>{{ workorder.created_by }}</td>
+                <td>{{ workorder.hours }}</td>
+                <td>{% if workorder.billing %}Yes{% else %}No{% endif %}</td>
             </tr>
             {% endfor %}
         </tbody>

@@ -57,4 +57,4 @@ class DeliverableForm(forms.ModelForm):
 class WorkorderForm(forms.ModelForm):
     class Meta:
         model = Workorder
-        fields = ['company', 'department', 'type', 'hours', 'priority']
+        fields = ['company', 'department', 'type', 'hours', 'priority', 'description', 'assigned_to']
