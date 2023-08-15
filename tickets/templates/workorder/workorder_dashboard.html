@@ -170,12 +170,15 @@
             <tr>
                 <th>Company</th>
                 <th>Department</th>
+                <th>Type</th>
                 <th>Status</th>
                 <th>Analyst</th>
                 <th>CAM Approval</th>
                 <th>CAM</th>
                 <th>Hours</th>
                 <th>Billing</th>
+                <th>Approve Date</th>
+                <th>Complete Date</th>
             </tr>
         </thead>
         <tbody>
@@ -183,12 +186,15 @@
             <tr>
                 <td>{{ workorder.company }}</td>
                 <td>{{ workorder.get_department_display }}</td>
+                <td>{{ workorder.type }}</td>
                 <td>{{ workorder.get_status_display }}</td>
                 <td>{{ workorder.assigned_to }}</td>
                 <td>{{ workorder.cam_approval }}</td>
                 <td>{{ workorder.created_by }}</td>
                 <td>{{ workorder.hours }}</td>
-                <td>{% if workorder.billing %}Yes{% else %}No{% endif %}</td>
+                <td>{{ workorder.billing }}</td>
+                <td>{{ workorder.approve_date|date:'d/m/Y' }}</td>
+                <td>{{ workorder.complete_date|date:'d/m/Y' }}</td>
             </tr>
             {% endfor %}
         </tbody>

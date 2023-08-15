@@ -52,6 +52,7 @@ from django.http import HttpResponse
 from django.conf import settings
 from django.db.models.functions import ExtractMonth
 from django.db.models import Sum, Count
+from django.contrib.auth.models import Group
 
 def get_greeting(request):
     now = datetime.now()
@@ -687,24 +688,27 @@ def create_work_order(request):
 
     return render(request, 'workorder/create_workorder.html', context)
 
+@login_required
 def analyze_work_order(request):
     if request.method == 'POST':
         workorder_id = request.POST.get('workorder_id')
         cam_approval = request.POST.get('cam_approval')
-        billing = request.POST.get('billing')  # Obtém o valor selecionado para Billing
+        billing = request.POST.get('billing')
         workorder = Workorder.objects.get(id=workorder_id)
         
         if cam_approval == 'Approve':
             workorder.status = 'In Progress'
             workorder.cam_approval = 'Approved'
-            workorder.billing = billing  # Atualiza o valor de Billing
+            workorder.billing = billing
+            workorder.approve_date = timezone.now()  # Define a data de aprovação
             workorder.save()
             return redirect('execute_work_order')
         elif cam_approval == 'Reprove':
             workorder.status = 'Rework'
             workorder.cam_approval = 'Reproved'
             workorder.assigned_to = workorder.created_by
-            workorder.billing = billing  # Atualiza o valor de Billing
+            workorder.billing = billing
+            workorder.approve_date = None  # Define a data de aprovação como nula ao reprovar
             workorder.save()
             return redirect('rework_work_order')
 
@@ -718,12 +722,14 @@ def analyze_work_order(request):
     return render(request, 'workorder/analyze_workorder.html', context)
 
 
+
 @login_required
 def execute_work_order(request):
     if request.method == 'POST':
         workorder_id = request.POST.get('workorder_id')
         workorder = Workorder.objects.get(id=workorder_id)
         workorder.status = 'Executed'
+        workorder.complete_date = timezone.now()
         workorder.save()
         messages.success(request, 'Work Order has been executed.')
         return redirect('work_order_dashboard')
@@ -735,6 +741,33 @@ def execute_work_order(request):
     }
 
     return render(request, 'workorder/execute_workorder.html', context)
+
+#nessa função é para criar um ticket automaticamente quando a WO for aprovada pelo CAM e vai para Execute
+@receiver(post_save, sender=Workorder)
+def create_tickets(sender, instance, created, **kwargs):
+    if created and instance.cam_approval == 'Approved':
+    
+        # Mapeamento das atividades para os títulos
+        activity_titles = {
+            'execute': f'WO - Execute #{instance.id}',
+        }
+        cam = instance.created_by
+        analyst = instance.assigned_to
+        ticket_sla_date = instance.sla_date
+        
+        for activity, title in activity_titles.items():
+            Ticket.objects.create(
+                title=title,
+                description=f'Hi, this is an automatic ticket to execute WO approved.',
+                priority='Medium',
+                assigned_to=analyst,
+                created_by=cam,
+                company=instance.company,
+                department='Operation',
+                type=activity,
+                sla_date=getattr(instance, f'{activity}_date', ticket_sla_date),
+            )
+
 
 @login_required
 def rework_work_order(request):
@@ -757,8 +790,7 @@ def rework_work_order(request):
 
     return render(request, 'workorder/rework_workorder.html', context)
 
-
-
+@login_required
 def work_order_dashboard(request):
     workorders = Workorder.objects.all()
 
@@ -787,15 +819,16 @@ def edit_work_order(request, workorder_id):
 
     return render(request, 'workorder/edit_workorder.html', context)
 
+@login_required
 def report_workorder(request):
-    analysts = CustomUser.objects.filter(groups__name='Analyst')
+    analysts = CustomUser.objects.filter(assigned_workorder__isnull=False).distinct()
     months = Workorder.objects.annotate(month=ExtractMonth('created_at')).values('month').distinct()
     
     data = []
     for analyst in analysts:
         analyst_data = {'analyst': analyst, 'months': []}
         for month in months:
-            workorders = Workorder.objects.filter(created_by=analyst, created_at__month=month['month'])
+            workorders = Workorder.objects.filter(assigned_to=analyst, created_at__month=month['month'], status='Executed')
             total_hours = workorders.aggregate(Sum('hours'))['hours__sum']
             billing_count = workorders.filter(billing='Yes').count()
             analyst_data['months'].append({

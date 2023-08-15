@@ -195,10 +195,15 @@
                         </select>
                     </td>
                     <td>
-                        <select name="billing">
-                            <option value="Yes" {% if workorder.billing == 'Yes' %}selected{% endif %}>Yes</option>
-                            <option value="No" {% if workorder.billing == 'No' %}selected{% endif %}>No</option>
-                        </select>
+                        {% if workorder.type != 'RSA' %}
+                            <select name="billing">
+                                <option value="Yes" {% if workorder.billing == 'Yes' %}selected{% endif %}>Yes</option>
+                                <option value="No" {% if workorder.billing == 'No' %}selected{% endif %}>No</option>
+                            </select>
+                        {% else %}
+                            No
+                            <input type="hidden" name="billing" value="No">
+                        {% endif %}
                     </td>
                     </td>
                     <td>

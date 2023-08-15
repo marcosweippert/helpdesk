@@ -162,27 +162,28 @@
 </head>
 <body>
     <h1>Work Order Report</h1>
-    <table>
+    <table class="report-table">
         <thead>
             <tr>
                 <th>Analyst</th>
                 <th>Month</th>
                 <th>Total Hours</th>
-                <th>Billing Yes Count</th>
+                <th>Billing Count</th>
             </tr>
         </thead>
         <tbody>
             {% for analyst in analyst_data %}
+            {% for month in analyst.months %}
             <tr>
                 <td>{{ analyst.analyst }}</td>
-                {% for month in analyst.months %}
                 <td>{{ month.month }}</td>
                 <td>{{ month.total_hours }}</td>
                 <td>{{ month.billing_count }}</td>
-                {% endfor %}
             </tr>
+            {% endfor %}
             {% endfor %}
         </tbody>
     </table>
+    <a href="{% url 'home' %}" class="btn-secondary"><span class="material-icons">arrow_back</span>home</a>
 </body>
 </html>

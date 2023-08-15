@@ -270,6 +270,10 @@ class Workorder(models.Model):
     type = models.CharField(max_length=100, choices=TYPE_CHOICES, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     priority = models.CharField(max_length=15, choices=PRIORITY_CHOICES, default='Medium')
+    approve_date = models.DateTimeField(null=True, blank=True)
+    billing_date = models.DateTimeField(null=True, blank=True)
+    complete_date = models.DateTimeField(null=True, blank=True)
+
 
 
 
