@@ -8,7 +8,7 @@ class UserForm(forms.ModelForm):
 
     class Meta:
         model = CustomUser
-        fields = ['username', 'email', 'first_name', 'last_name', 'password']
+        fields = ['username', 'email', 'first_name', 'last_name', 'password', 'is_staff', 'is_superuser', 'is_cam', 'is_analyst', 'is_manager']
 
 
 class TicketForm(forms.ModelForm):

@@ -31,7 +31,30 @@ class CustomUserManager(BaseUserManager):
             raise ValueError('O superusuário deve ter is_superuser=True.')
 
         return self.create_user(username, email, password, **extra_fields)
+    
+    def create_cam(self, username, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', False)
+        extra_fields.setdefault('is_cam', True)
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Um CAM deve ter is_staff=True.')
+        return self.create_user(username, email, password, **extra_fields)
 
+    def create_analyst(self, username, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', False)
+        extra_fields.setdefault('is_analyst', True)
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Um Analista deve ter is_staff=True.')
+        return self.create_user(username, email, password, **extra_fields)
+
+    def create_manager(self, username, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', False)
+        extra_fields.setdefault('is_manager', True)
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Um Gerente deve ter is_staff=True.')
+        return self.create_user(username, email, password, **extra_fields)
 
 class CustomUser(AbstractBaseUser):
     username = models.CharField(max_length=150, unique=True)
@@ -39,9 +62,7 @@ class CustomUser(AbstractBaseUser):
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
     company = models.ForeignKey('Company', on_delete=models.CASCADE, blank=True, null=True)
-    # Outros campos de usuário
 
-    # Configura o manager personalizado
     objects = CustomUserManager()
 
     USERNAME_FIELD = 'username'
@@ -50,10 +71,18 @@ class CustomUser(AbstractBaseUser):
 
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
+    is_cam = models.BooleanField('CAM', default=False)
+    is_analyst = models.BooleanField('Analyst', default=False)
+    is_manager = models.BooleanField('Manager', default=False)
 
     def __str__(self):
         return self.username
+    
+    def has_perm(self, perm, obj=None):
+        return self.is_staff
 
+    def has_module_perms(self, app_label):
+        return self.is_staff
 
 class Company(models.Model):
     name = models.CharField(max_length=100)
@@ -145,14 +174,11 @@ class Ticket(models.Model):
     def __str__(self):
         return self.title
 
-
 class Comment(models.Model):
     ticket = models.ForeignKey(Ticket, related_name='comments', on_delete=models.CASCADE)
     body = models.TextField()
     author = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
-
-
 
 class DeliveryCalendar(models.Model):
     PAY_CHOICES = (

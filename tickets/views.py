@@ -295,8 +295,7 @@ def ticket_create(request):
 
 
 
-
-# Signal to create tickets when a DeliveryCalendar is added
+#Função de sinal, observa o DeliveryCalendar, quando é criado gera os tickets abaixo
 @receiver(post_save, sender=DeliveryCalendar)
 def create_tickets(sender, instance, created, **kwargs):
     if created:
@@ -304,7 +303,7 @@ def create_tickets(sender, instance, created, **kwargs):
         activity_titles = {
             'Changes': 'Payroll Changes',
             'Payroll Preview': 'Payroll Preview',
-            'Payroll Approval': 'Payroll Approval',
+            'Approval': 'Payroll Approval',
             'Net Salaries': 'Net Salaries',
             'Taxes': 'Taxes',
             'Accounting': 'Accounting and Provisions',
@@ -319,13 +318,16 @@ def create_tickets(sender, instance, created, **kwargs):
         if instance.pay_period == 'Advance':
             # Cria as atividades para pay_period igual a 'Advance'
             activity_titles = {
-            'Changes': 'Payroll Changes',
-            'Payroll Preview': 'Payroll Preview',
-            'Payroll Approval': 'Payroll Approval',
-            'Net Salaries': 'Net Salaries',
+                'Changes': 'Payroll Changes',
+                'Payroll Preview': 'Payroll Preview',
+                'Approval': 'Payroll Approval',
+                'Net Salaries': 'Net Salaries',
             }
         
         for activity, title in activity_titles.items():
+            activity_date_field = f'{activity.replace(" ", "_").lower()}_date'
+            sla_date = getattr(instance, activity_date_field, ticket_sla_date)
+            
             Ticket.objects.create(
                 title=title,
                 description=f'This is an automatic ticket for {activity} activity',
@@ -335,8 +337,9 @@ def create_tickets(sender, instance, created, **kwargs):
                 company=instance.client,
                 department='Operation',
                 type=activity,
-                sla_date=getattr(instance, f'{activity}_date', ticket_sla_date),
+                sla_date=sla_date,
             )
+252
 
 from datetime import timedelta
 #nessa função é para criar um ticket automaticamente quando um ticket do tipo "termination" é criado e solicitar ao usuario que tire os extratos de FGTS

@@ -9,13 +9,114 @@
     <p style="color: red;">{{ error_message }}</p>
   {% endif %}
   <title>Cadastro de Usuário</title>
-
-  <!-- Importe o Materialize CSS -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-
-  <!-- Importe a fonte dos ícones do Google -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <style>
+      body {
+          font-family: 'Poppins', Arial, sans-serif;
+          padding: 5px;
+          font-size: 12px;
+          background-color: #f2f2f2;
+      }
+
+      h1 {
+          color: #007BFF; /* Cor azul para o título */
+          margin-bottom: 20px;
+          text-align: center;
+      }
+
+      form {
+          width: 400px;
+          margin: 0 auto;
+      }
+
+      input[type="text"],
+      textarea,
+      select,
+      input[type="submit"] {
+          width: 100%;
+          padding: 10px;
+          margin-bottom: 15px;
+          border: 1px solid #ccc;
+          border-radius: 5px;
+      }
+
+      textarea {
+          resize: vertical;
+          height: 150px;
+      }
+
+      input[type="submit"] {
+          background-color: #007BFF; /* Cor azul para o botão */
+          color: #fff; /* Cor do texto do botão */
+          cursor: pointer;
+      }
+
+      input[type="submit"]:hover {
+          background-color: #0056b3; /* Cor mais escura do azul ao passar o mouse */
+      }
+
+      .material-icons {
+          font-size: 18px;
+          vertical-align: middle;
+          margin-right: 5px;
+      }
+
+      /* Botão menor */
+      .btn-small {
+          font-size: 12px;
+          padding: 0 10px;
+          height: 24px;
+          line-height: 24px;
+      }
+
+      /* Estilos para seguir o Material Design */
+      a, button {
+          color: #007BFF; /* Cor do link e do botão */
+          cursor: pointer;
+      }
+
+      a:hover {
+          text-decoration: underline;
+      }
+
+
+      .btn {
+          background-color: #007BFF; /* Cor de fundo do botão */
+          color: #fff; /* Cor do texto do botão */
+          border-radius: 4px; /* Borda arredondada do botão */
+          transition: background-color 0.2s;
+          padding: 10px 20px; /* Espaçamento interno do botão */
+          margin-right: 10px; /* Espaçamento direita para separar os botões */
+      }
+
+      .btn:hover {
+          background-color: #0056b3; /* Cor de fundo do botão ao passar o mouse */
+      }
+
+      /* Botão menor */
+      .btn-small {
+          font-size: 12px;
+          padding: 0 10px;
+          height: 24px;
+          line-height: 24px;
+      }
+
+      /* Botão secundário com estilo diferente */
+      .btn-secondary {
+          background-color: #007BFF; /* Cor de fundo do botão */
+          color: #fff; /* Cor do texto do botão */
+          border-radius: 4px; /* Borda arredondada do botão */
+          transition: background-color 0.2s;
+          padding: 10px 20px; /* Espaçamento interno do botão */
+          margin-right: 10px; /* Espaçamento direita para separar os botões */
+      }
+
+      .btn-secondary:hover {
+          background-color: #333; /* Cor de fundo do botão secundário ao passar o mouse */
+      }
+  </style>
 </head>
 <body>
   <h1 class="center-align">Cadastro de Usuário</h1>
@@ -26,7 +127,7 @@
       <div class="input-field col s12">
         <i class="material-icons prefix">person</i>
         {{ form.username }}
-        <label for="{{ form.username.id_for_label }}">Nome de Usuário</label>
+        <label for="{{ form.username.id_for_label }}">Username</label>
       </div>
       <div class="input-field col s12">
         <i class="material-icons prefix">email</i>
@@ -36,44 +137,58 @@
       <div class="input-field col s12">
         <i class="material-icons prefix">person_outline</i>
         {{ form.first_name }}
-        <label for="{{ form.first_name.id_for_label }}">Primeiro Nome</label>
+        <label for="{{ form.first_name.id_for_label }}">First Name</label>
       </div>
       <div class="input-field col s12">
         <i class="material-icons prefix">person_outline</i>
         {{ form.last_name }}
-        <label for="{{ form.last_name.id_for_label }}">Sobrenome</label>
+        <label for="{{ form.last_name.id_for_label }}">Last Name</label>
       </div>
       <div class="input-field col s12">
         <i class="material-icons prefix">vpn_key</i>
         {{ form.password }}
-        <label for="{{ form.password.id_for_label }}">Senha</label>
+        <label for="{{ form.password.id_for_label }}">Password</label>
       </div>
       <div class="input-field col s12">
         <p>
-            <label>
-                <input type="checkbox" name="{{ form.is_staff.name }}" {% if form.is_staff.value %}checked{% endif %}>
-                <span>É Staff</span>
-            </label>
+          <label>
+            <input type="checkbox" name="{{ form.is_staff.name }}" {% if form.is_staff.value %}checked{% endif %}>
+            <span>Is Staff</span>
+          </label>
         </p>
-    </div>
-    <div class="input-field col s12">
+      </div>
+      <div class="input-field col s12">
         <p>
-            <label>
-                <input type="checkbox" name="{{ form.is_superuser.name }}" {% if form.is_superuser.value %}checked{% endif %}>
-                <span>É Super Usuário</span>
-            </label>
+          <label>
+            <input type="checkbox" name="{{ form.is_cam.name }}" {% if form.is_cam.value %}checked{% endif %}>
+            <span>Is CAM</span>
+          </label>
         </p>
-    </div>
-      
+      </div>
+      <div class="input-field col s12">
+        <p>
+          <label>
+            <input type="checkbox" name="{{ form.is_analyst.name }}" {% if form.is_analyst.value %}checked{% endif %}>
+            <span>Is Analyst</span>
+          </label>
+        </p>
+      </div>
+      <div class="input-field col s12">
+        <p>
+          <label>
+            <input type="checkbox" name="{{ form.is_manager.name }}" {% if form.is_manager.value %}checked{% endif %}>
+            <span>Is Manager</span>
+          </label>
+        </p>
+      </div>
       <div class="input-field col s12">
         <input type="submit" class="btn" value="Salvar">
       </div>
     </form>
   </div>
 
-  <!-- ... Restante do corpo ... -->
   <a href="{% url 'home' %}">
-    <i class="material-icons">arrow_back</i> <!-- Ícone de voltar -->
+    <i class="material-icons">arrow_back</i>
     Voltar para a página inicial
   </a>
 </body>
