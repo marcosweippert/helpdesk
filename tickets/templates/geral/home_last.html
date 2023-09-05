@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Home - Helpdesk</title>
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+        <style>
+            body {
+                font-family: 'Poppins', Arial, sans-serif;
+                padding: 10px;
+                text-align: left;
+                margin: 0; /* Remove default margin to extend content fully */
+                background-color: #f2f2f2;
+                display: flex;
+                flex-direction: column;
+            }
+
+        h1 {
+            color: #007BFF;
+            margin-bottom: 20px;
+        }
+
+        p {
+            margin-bottom: 10px;
+        }
+
+        .navbar {
+            background-color: #007BFF;
+            padding: 10px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .navbar .logo {
+            font-size: 25px;
+
+        }
+
+        .button-container {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .button-group a {
+            text-decoration: none;
+            margin: 10px;
+        }
+
+        .dropdown-trigger {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+   
+            color: white;
+            cursor: pointer;
+            text-align: left;
+            transition: background-color 0.3s;
+        }
+
+        .dropdown-content {
+            min-width: 200px;
+        }
+
+        .dropdown-content a {
+            color: black;
+            padding: 10px;
+            display: block;
+            text-align: left;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+
+        .material-icons {
+            font-size: 18px;
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+        .vertical-column {
+            display: flex;
+            flex-direction: column;
+            align-items: left;
+        }
+        .sidebar {
+            background-color: #f2f2f2;
+            width: 250px;
+            height: 100%;
+            position: flex;
+            top: 0;
+            left: 0;
+            padding-top: top;
+        }
+
+        .content {
+            margin-left: 250px;
+            padding: 30px;            
+        }
+
+        .button-group.vertical-column {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start; /* Alinha o texto à esquerda */
+            padding: 0px;
+        }
+
+        .button-group.vertical-column a {
+            width: 100%; /* Faz com que os botões ocupem todo o espaço horizontal */
+            text-align: left; /* Alinha o texto à esquerda */
+            margin: 0px 0; /* Espaçamento entre os botões */
+        }
+
+        .button-group.vertical-column .btn {
+            width: 100%; /* Faz com que os botões ocupem todo o espaço horizontal */
+            text-align: left; /* Alinha o texto à esquerda */
+        }
+
+        .button-group.vertical-column .dropdown-content {
+            width: 100%; /* Faz com que o dropdown ocupe todo o espaço horizontal */
+        }
+            /* Estilo para o footer */
+        .footer {
+            background-color: #007BFF;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+    /* Estilo para os parágrafos dentro do footer */
+    .footer p {
+    margin: 5px 10px;
+}
+
+    /* Estilo para o perfil de admin ou operador */
+    .profile {
+        font-weight: bold;
+    }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="logo">SLA - Helpdesk</div>
+        {% if user.is_superuser %}
+            <a class="dropdown-trigger" href="#" data-target="dropdown-config">
+                <i class="material-icons left">settings</i>Settings<i class="material-icons right">arrow_drop_down</i>
+            </a>
+            <ul id="dropdown-config" class="dropdown-content">
+                <li><a href="{% url 'user_list' %}"><i class="material-icons">supervisor_account</i>User List</a></li>
+                <li><a href="{% url 'user_create' %}"><i class="material-icons">person_add</i>User Create</a></li>
+                <li><a href="{% url 'company_list' %}"><i class="material-icons">business</i>Company List</a></li>
+                <li><a href="{% url 'company_create' %}"><i class="material-icons">add_business</i>Company Create</a></li>
+            </ul>
+        {% endif %}
+        <a href="{% url 'logout' %}">
+            <button class="waves-effect waves-light btn"><i class="material-icons left">exit_to_app</i>Logout</button>
+        </a>
+    </div>
+
+    <div class="sidebar">
+        <div class="button-group vertical-column">
+            <a class="dropdown-trigger cascading-button" href="#" data-target="dropdown-tickets">
+                <button class="waves-effect waves-light btn"><i class="material-icons left">receipt</i>Tickets</button>
+            </a>
+            <ul id="dropdown-tickets" class="dropdown-content">
+                <li><a href="{% url 'ticket_create' %}"><i class="material-icons">add</i>Create New Ticket</a></li>
+                <li><a href="{% url 'ticket_list_all_closed' %}"><i class="material-icons">done_all</i>All Closed Tickets</a></li>
+                <li><a href="{% url 'ticket_list_all_open' %}"><i class="material-icons">list</i>All Open Tickets</a></li>
+                <li><a href="{% url 'ticket_list' %}"><i class="material-icons">list_alt</i>All Tickets</a></li>
+            </ul>
+            <a class="dropdown-trigger cascading-button" href="#" data-target="dropdown-mytickets">
+                <button class="waves-effect waves-light btn"><i class="material-icons left">receipt</i> My Tickets</button>
+            </a>
+            <ul id="dropdown-mytickets" class="dropdown-content">
+                <li><a href="{% url 'ticket_list_my_open' %}"><i class="material-icons">assignment_turned_in</i>My Open Tickets</a></li>
+                <li><a href="{% url 'ticket_list_my_closed' %}"><i class="material-icons">assignment</i>My Closed Tickets</a></li>
+            </ul>
+    
+            <a class="dropdown-trigger cascading-button" href="#" data-target="dropdown-delivery">
+                <button class="waves-effect waves-light btn"><i class="material-icons left">receipt</i>Delivery</button>
+            </a>
+            <ul id="dropdown-delivery" class="dropdown-content">
+                <li><a href="{% url 'delivery_calendar_create' %}"><i class="material-icons">calendar_today</i>Create Calendar</a></li>
+                <li><a href="{% url 'delivery_calendar_list' %}"><i class="material-icons">event</i>Calendar List</a></li>
+            </ul>
+    
+            <a class="dropdown-trigger cascading-button" href="#" data-target="dropdown-workorder">
+                <button class="waves-effect waves-light btn"><i class="material-icons left">receipt</i>Work Order</button>
+            </a>
+            <ul id="dropdown-workorder" class="dropdown-content">
+                <li><a href="{% url 'work_order_dashboard' %}"><i class="material-icons">dashboard</i>Dashboard</a></li>
+                <li><a href="{% url 'create_work_order' %}"><i class="material-icons">add_box</i>Create</a></li>
+                <li><a href="{% url 'analyze_work_order' %}"><i class="material-icons">bar_chart</i>Analyze</a></li>
+                <li><a href="{% url 'rework_work_order' %}"><i class="material-icons">build</i>Rework</a></li>
+                <li><a href="{% url 'execute_work_order' %}"><i class="material-icons">done_outline</i>Execute</a></li>
+                <li><a href="{% url 'report_work_order' %}"><i class="material-icons">description</i>Reports</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="footer">
+        <p>{{ user.first_name }} {{ user.last_name }}</p>
+        <p>Username: {{ user.username }}</p>
+        {% if user.is_superuser %}
+            <p class="profile">Profile: Admin</p>
+        {% else %}
+            <p class="profile">Profile: Operator</p>
+        {% endif %}
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var dropdownElems = document.querySelectorAll('.dropdown-trigger');
+            var dropdownOptions = {
+                coverTrigger: false,
+                alignment: 'right',
+            };
+            M.Dropdown.init(dropdownElems, dropdownOptions);
+        });
+        document.addEventListener('DOMContentLoaded', function() {
+
+            var dropdownTickets = document.querySelectorAll('.dropdown-trigger')[0];
+            var dropdownDelivery = document.querySelectorAll('.dropdown-trigger')[1];
+
+            var options = {
+                coverTrigger: false,
+                alignment: 'right',
+            };
+
+            M.Dropdown.init(dropdownTickets, options);
+            M.Dropdown.init(dropdownDelivery, options);
+        });
+        
+    </script>
+    </script>
+</body>
+</html>

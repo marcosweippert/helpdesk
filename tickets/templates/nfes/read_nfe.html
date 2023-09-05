@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  {% if error_message %}
+    <p style="color: red;">{{ error_message }}</p>
+  {% endif %}
+  <title>Leitura de NFe</title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Poppins', Arial, sans-serif;
+      padding: 5px;
+      font-size: 12px;
+      background-color: #f2f2f2;
+    }
+
+    h1 {
+      color: #007BFF;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    form {
+      width: 400px;
+      margin: 0 auto;
+    }
+
+    button {
+      width: 400px;
+      margin: 0 auto;
+    }
+
+    input[type="text"],
+    textarea,
+    select,
+    input[type="submit"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    textarea {
+      resize: vertical;
+      height: 150px;
+    }
+
+    input[type="submit"] {
+      background-color: #007BFF;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    input[type="submit"]:hover {
+      background-color: #0056b3;
+    }
+
+    .material-icons {
+      font-size: 18px;
+      vertical-align: middle;
+      margin-right: 5px;
+    }
+
+    a, button {
+      color: #007BFF;
+      cursor: pointer;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .btn {
+      background-color: #007BFF;
+      color: #fff;
+      border-radius: 4px;
+      transition: background-color 0.2s;
+      padding: 10px 20px;
+      margin-right: 10px;
+    }
+
+    .btn:hover {
+      background-color: #0056b3;
+    }
+
+    .btn-small {
+      font-size: 12px;
+      padding: 0 10px;
+      height: 24px;
+      line-height: 24px;
+    }
+
+    .btn-secondary {
+      background-color: #007BFF;
+      color: #fff;
+      border-radius: 4px;
+      transition: background-color 0.2s;
+      padding: 10px 20px;
+      margin-right: 10px;
+    }
+
+    .btn-secondary:hover {
+      background-color: #333;
+    }
+
+    /* Estilos para seguir o Material Design */
+    a, button {
+      color: #007BFF;
+      cursor: pointer;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+  </style>
+</head>
+<body>
+  <h1>Processar NF-e</h1>
+
+  <!-- Botão para iniciar a leitura do QR code -->
+  
+
+  <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <label for="qr_code">QR Code:</label>
+    <input type="text" name="qr_code" id="qr_code" placeholder="Cole o QR Code"><br><br>
+
+    <input type="submit" value="Ler Nota Fiscal">
+  </form>
+  <div>
+    <button id="start-scan" class="btn">Ler QR Code</button>
+  </div>
+  <!-- Resultado da leitura do QR code será exibido aqui -->
+  <div id="qr-result"></div>
+
+
+
+  <!-- Biblioteca Instascan para a leitura do QR code -->
+  <script src="https://rawgit.com/schmich/instascan-builds/master/instascan.min.js"></script>
+
+  <script>
+    // Variável para controlar se a leitura do QR code está ativa
+    let scanning = false;
+
+    // Função para iniciar a leitura do QR code
+    function startQRScan() {
+      if (!scanning) {
+        scanning = true;
+        const scanner = new Instascan.Scanner({ video: document.getElementById('preview') });
+        scanner.addListener('scan', function (content) {
+          document.getElementById('qr-result').textContent = 'Resultado da Leitura: ' + content;
+
+          // Preencha automaticamente o campo de QR code com o conteúdo lido
+          document.getElementById('qr_code').value = content;
+
+          // Marque que a leitura está concluída
+          scanning = false;
+
+          // Feche a câmera
+          scanner.stop();
+        });
+        Instascan.Camera.getCameras().then(function (cameras) {
+          if (cameras.length > 0) {
+            scanner.start(cameras[0]);
+          } else {
+            alert('Nenhuma câmera encontrada.');
+            scanning = false;
+          }
+        }).catch(function (e) {
+          console.error(e);
+          scanning = false;
+        });
+      }
+    }
+
+    // Adicione um evento de clique ao botão de leitura de QR code
+    document.getElementById('start-scan').addEventListener('click', function () {
+      // Limpa o resultado anterior
+      document.getElementById('qr-result').textContent = '';
+      // Inicia a leitura do QR code
+      startQRScan();
+    });
+  </script>
+</body>
+</html>

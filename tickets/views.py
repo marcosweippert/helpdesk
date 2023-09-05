@@ -53,40 +53,46 @@ from django.conf import settings
 from django.db.models.functions import ExtractMonth
 from django.db.models import Sum, Count
 from django.contrib.auth.models import Group
+from django.db.models import Q
+from django.db.models import Count
+import datetime
+import xml.etree.ElementTree as ET
+from decimal import Decimal
 
-def get_greeting(request):
-    now = datetime.now()
-    hour = now.hour
-
-    if 6 <= hour < 12:
-        greeting = "Bom dia"
-    elif 12 <= hour < 18:
-        greeting = "Boa tarde"
-    else:
-        greeting = "Boa noite"
-
-    # Check if the user is authenticated and has a name field
-    if request.user.is_authenticated and hasattr(request.user, 'name'):
-        user_name = request.user.name
-        return f"{greeting}, {user_name}!"
-    else:
-        return greeting
     
 @login_required
 def home(request):
     # Exemplo de mensagem de boas-vindas
-    welcome_message = get_greeting(request)
     analyst_tickets = Ticket.objects.filter(status='New').values('assigned_to').annotate(total=Count('id'))
     date_tickets = Ticket.objects.filter(status='New').values('created_at__date').annotate(total=Count('id'))
     companies = Company.objects.all()
     users = CustomUser.objects.all()
+        # Calcular contagem de tickets do mês atual
+    today = datetime.datetime.today()
+
+    current_year = datetime.datetime.now().year
+    monthly_tickets = Ticket.objects.filter(created_at__year=current_year).exclude(status='Cancelled') \
+        .values('created_at__month').annotate(count=Count('id'))
+
+    # Calcular contagem de tickets do ano atual
+    start_of_year = today.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+    annual_tickets = Ticket.objects.filter(status='New', created_at__gte=start_of_year).count()
+
+    # Calcular contagem de tickets em aberto
+    open_tickets = Ticket.objects.exclude(status='Closed').count()
+
+        # Calcular contagem de tickets fechados
+    closed_tickets = Ticket.objects.filter(status='Closed').count()
 
     context = {
         'companies': companies,
         'users': users,
-        'welcome_message': welcome_message,
         'analyst_tickets': analyst_tickets,
         'date_tickets': date_tickets,
+        'monthly_tickets': monthly_tickets,
+        'annual_tickets': annual_tickets,
+        'open_tickets': open_tickets,
+        'closed_tickets': closed_tickets,
     }
     # Renderiza o template 'home.html' passando a mensagem de boas-vindas como contexto
     return render(request, 'geral/home.html', context)
@@ -162,6 +168,16 @@ def user_delete(request, pk):
         return redirect('user_list')
     return render(request, 'user/user_confirm_delete.html', {'user': user})
 
+from django.shortcuts import render
+
+def forgot_password_view(request):
+    # Implementar o processamento de redefinição de senha aqui
+    if request.method == 'POST':
+        # Lógica para enviar um link de redefinição de senha por e-mail
+        # Você pode usar bibliotecas como 'django.contrib.auth.tokens' para gerar tokens
+        pass
+
+    return render(request, 'user/forgot_password.html')
 
 
 
@@ -339,7 +355,7 @@ def create_tickets(sender, instance, created, **kwargs):
                 type=activity,
                 sla_date=sla_date,
             )
-252
+
 
 from datetime import timedelta
 #nessa função é para criar um ticket automaticamente quando um ticket do tipo "termination" é criado e solicitar ao usuario que tire os extratos de FGTS
@@ -845,3 +861,150 @@ def report_workorder(request):
         'analyst_data': data,
     }
     return render(request, 'workorder/report_workorder.html', context)
+
+
+
+
+from django.http import JsonResponse
+from django.shortcuts import render
+import qrcode
+from io import BytesIO
+from django.http import HttpResponse
+import zeep
+import requests
+
+def consultar_nfe(chave_acesso):
+    # URL da API da SEFAZ específica para consulta de NF-e
+    url_api_sefaz = "https://nfce.sefa.pr.gov.br/nfce/NFeConsultaProtocolo4?wsdl"
+
+    # Parâmetros da consulta, incluindo a chave de acesso
+    params = {'chave_acesso': chave_acesso}
+
+    try:
+        # Faz a solicitação à API da SEFAZ
+        response = requests.get(url_api_sefaz, params=params)
+
+        # Verifica se a solicitação foi bem-sucedida (código de status 200)
+        if response.status_code == 200:
+            # Analisa a resposta JSON ou XML, dependendo do formato retornado pela API
+            link_nfe = response.json()  # Se a API retornar JSON
+            # Ou
+            # dados = xml.etree.ElementTree.fromstring(response.text)  # Se a API retornar XML
+
+            # Obtenha o link do QR code da resposta e adicione-o aos dados
+            link_nfe['link_nfe'] = link_nfe.get('link_nfe', '')
+
+            # Faça algo com os dados, como exibi-los ou armazená-los
+            return link_nfe
+        else:
+            return {'erro': 'Erro ao consultar a NF-e'}
+    except requests.exceptions.RequestException as e:
+        # Tratar erros de solicitação, como falta de conexão com a internet
+        return {'erro': str(e)}
+
+import time
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import NoSuchElementException
+from django.shortcuts import render
+from .models import Invoice
+
+def read_nfe(request):
+    valor_total = None
+
+    if request.method == 'POST':
+        # Verifica se o usuário inseriu um link da NF-e
+        if 'qr_code' in request.POST and request.POST['qr_code']:
+            url_nfe = request.POST['qr_code']
+
+            # A partir daqui, você pode extrair informações diretamente do HTML da nota fiscal
+            invoice = extrair_informacoes_nfe_selenium(url_nfe)
+
+            # Verifica se as informações foram extraídas com sucesso
+            if invoice:
+                # Faça algo com os dados da Invoice, como armazená-los no banco de dados
+                print(f"Número da NF-e: {invoice.number}")
+                print(f"Série: {invoice.series}")
+                print(f"Data de Emissão: {invoice.issuance_date}")
+                print(f"Data de Saída: {invoice.exit_date}")
+                print(f"CNPJ do Emissor: {invoice.emitter_cnpj}")
+                print(f"Nome do Emissor: {invoice.emitter_name}")
+                print(f"CNPJ do Destinatário: {invoice.recipient_cnpj}")
+                print(f"Nome do Destinatário: {invoice.recipient_name}")
+                print(f"Valor Total: {invoice.total_value}")
+
+    return render(request, 'nfes/read_nfe.html', {'valor_total': valor_total})
+
+# Função para extrair informações da página da nota fiscal
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import NoSuchElementException
+from decimal import Decimal
+
+def extrair_informacoes_nfe_selenium(url_nfe):
+    driver = None
+    try:
+        driver = webdriver.Chrome()  # Você precisa configurar o WebDriver adequado, como o ChromeDriver, aqui
+        driver.get(url_nfe)  # Abra a URL da nota fiscal no navegador
+
+        # Use o Selenium para localizar e extrair as informações
+        wait = WebDriverWait(driver, 10)  # Espere até 10 segundos
+        items = driver.find_elements(By.XPATH, "//strong")
+        
+        for item in items:
+            print(item.text.strip())
+
+        number_element = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/table/tbody/tr[176]/td[2]/text()[2]")))
+        number = number_element.text.strip()
+
+        serie_element = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/table/tbody/tr[177]/td[2]/text()[2]")))
+        serie = serie_element.text.strip()
+
+        emissao_element = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/table/tbody/tr[178]/td[2]/text()[2]")))
+        emissao_text = emissao_element.text.strip()
+
+        # Verifique se o texto contém uma data válida antes de tentar convertê-lo
+        emissao_date = None
+        if emissao_text:
+            try:
+                emissao_date = datetime.strptime(emissao_text, "%d-%m-%Y").strftime("%Y-%m-%d")
+            except ValueError:
+                print(f"Data de emissão inválida: {emissao_text}")
+        
+        # Total da nota
+        total_nota_element = wait.until(EC.presence_of_element_located((By.XPATH, "//label[contains(text(), 'Valor total R$:')]/following-sibling::span")))
+        total_nota = total_nota_element.text.strip()
+
+        # Limpe os valores de entrada e converta-os para Decimal
+        number_limpo = number.replace(",", "").strip()
+        serie_limpa = serie.strip()
+        total_nota_decimal = Decimal(total_nota.replace(",", "").strip())
+
+        invoice, created = Invoice.objects.get_or_create(
+            number=number_limpo,
+            series=serie_limpa,
+            total_value=total_nota_decimal,
+            issuance_date=emissao_date,
+        )
+
+        return invoice  # Retorna a instância da Invoice criada ou existente
+
+    except NoSuchElementException as e:
+        print(f"Elemento não encontrado: {str(e)}")
+    except Exception as e:
+        print(f"Ocorreu um erro: {str(e)}")
+    finally:
+        if driver:
+            driver.quit()
+
+
+
+
+
+
+
+

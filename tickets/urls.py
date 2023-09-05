@@ -13,6 +13,10 @@ urlpatterns = [
     path('edit/<int:pk>/', views.user_edit, name='user_edit'),
     path('delete/<int:pk>/', views.user_delete, name='user_delete'),
 
+    path('forgot_password/', views.forgot_password_view, name='forgot_password'),
+
+    path('read-nfe/', views.read_nfe, name='read_nfe'),
+
 
     path('tickets/', views.ticket_list, name='ticket_list'),
     path('tickets/<int:ticket_id>/', views.ticket_detail, name='ticket_detail'),

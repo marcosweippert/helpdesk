@@ -305,3 +305,22 @@ class Workorder(models.Model):
 
     def __str__(self):
         return f"Workorder for {self.company.name}"
+    
+
+    from django.db import models
+
+class Invoice(models.Model):
+    number = models.CharField(max_length=20)
+    series = models.CharField(max_length=10)
+    issuance_date = models.DateField()
+    exit_date = models.DateField()
+    emitter_cnpj = models.CharField(max_length=14)
+    emitter_name = models.CharField(max_length=200)
+    recipient_cnpj = models.CharField(max_length=14)
+    recipient_name = models.CharField(max_length=200)
+    total_value = models.DecimalField(max_digits=15, decimal_places=2)
+    
+    # You can add more fields as needed
+
+    def __str__(self):
+        return f"Invoice-{self.number}"
