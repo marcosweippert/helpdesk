@@ -13,9 +13,33 @@ urlpatterns = [
     path('edit/<int:pk>/', views.user_edit, name='user_edit'),
     path('delete/<int:pk>/', views.user_delete, name='user_delete'),
 
-    path('forgot_password/', views.forgot_password_view, name='forgot_password'),
+    path('password_reset/', auth_views.PasswordResetView.as_view(
+        template_name='registration/password_reset_form.html',
+        email_template_name='registration/password_reset_email.html',
+        subject_template_name='registration/password_reset_subject.txt',
+        success_url='/password_reset/done/'
+    ), name='password_reset'),
 
-    path('read-nfe/', views.read_nfe, name='read_nfe'),
+    path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(
+        template_name='registration/password_reset_done.html'
+    ), name='password_reset_done'),
+
+    path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(
+        template_name='registration/password_reset_confirm.html',
+        success_url='/reset/done/'
+    ), name='password_reset_confirm'),
+
+    path('reset/done/', auth_views.PasswordResetCompleteView.as_view(
+        template_name='registration/password_reset_complete.html'
+    ), name='password_reset_complete'),
+
+
+    path('read_nfe/', views.read_nfe, name='read_nfe'),
+    path('create_manual_invoice/', views.create_manual_invoice, name='create_manual_invoice'),
+    path('invoices/', views.invoice_list, name='invoice_list'),
+    path('invoices/<int:pk>/edit/', views.invoice_edit, name='invoice_edit'),
+    path('invoices/<int:pk>/delete/', views.invoice_delete, name='invoice_delete'),
+
 
 
     path('tickets/', views.ticket_list, name='ticket_list'),
@@ -53,6 +77,12 @@ urlpatterns = [
     path('work_order_dashboard/', views.work_order_dashboard, name='work_order_dashboard'),
     path('edit_work_order/<int:workorder_id>/', views.edit_work_order, name='edit_work_order'),
     path('report_workorder/', views.report_workorder, name='report_work_order'),
+
+    path('driver_register/', views.driver_registration, name='driver_registration'),
+
+    path('auth_cpf/', views.auth_cpf, name='auth_cpf'),
+
+    path('create_bank/', views.create_bank, name='create_bank'),
 
 
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

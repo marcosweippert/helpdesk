@@ -1,63 +1,41 @@
-from django.shortcuts import render
-from django.shortcuts import render, redirect, get_object_or_404
-from .models import CustomUser, Ticket, Company, DeliveryCalendar, Workorder
-from .forms import UserForm, TicketForm, CompanyForm, WorkorderForm
-from django.contrib.auth.decorators import login_required
+from django.shortcuts import *
+from .models import *
+from .forms import *
+from django.contrib.auth.decorators import *
 from django.contrib.auth import authenticate, login
-from .models import CustomUser
-from django.shortcuts import render, redirect, get_object_or_404
-from .models import Ticket
-from .forms import CommentForm
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
-from .forms import UserForm
-from django.shortcuts import render, get_object_or_404, redirect
-from datetime import datetime, timedelta, date, time
+from datetime import *
 from django.utils import timezone
-from django.utils.timezone import make_aware
-from django.shortcuts import render, redirect, get_object_or_404
-from .models import Ticket, Comment
-from .forms import CommentForm
-from django.shortcuts import redirect
-from .models import Ticket
-from django.utils.timezone import now
-from django.shortcuts import render, get_object_or_404, redirect
-from .models import Ticket
-from .forms import ChangeAssignedToForm, DeliveryCalendarForm
+from django.utils.timezone import *
 from django.contrib import messages
-from django.http import JsonResponse
-from .models import Ticket
-from django.shortcuts import render, redirect
-from django.utils.timezone import make_aware
-from datetime import datetime
-from .models import Ticket
-from .forms import TicketForm
-from .models import Company, CustomUser, DeliveryCalendar
+from django.http import *
 from django.dispatch import receiver
 from django.db.models.signals import post_save
-from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-import datetime
-from datetime import datetime
 from django.core.mail import send_mail
-from django.db.models import Count
+from django.db.models import *
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, PatternFill
 import os
 import uuid
-from django.http import HttpResponse
 from django.conf import settings
 from django.db.models.functions import ExtractMonth
-from django.db.models import Sum, Count
 from django.contrib.auth.models import Group
-from django.db.models import Q
-from django.db.models import Count
+from django.db.models import *
 import datetime
 import xml.etree.ElementTree as ET
 from decimal import Decimal
+from django.contrib.auth import views as auth_views
+from django.contrib.auth.forms import SetPasswordForm
+from django.contrib.auth import login as auth_login
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.sites.shortcuts import get_current_site
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+from django.contrib.auth.models import User
+import re
+from datetime import *
 
     
 @login_required
@@ -68,9 +46,9 @@ def home(request):
     companies = Company.objects.all()
     users = CustomUser.objects.all()
         # Calcular contagem de tickets do mês atual
-    today = datetime.datetime.today()
+    today = datetime.today()
 
-    current_year = datetime.datetime.now().year
+    current_year = datetime.now().year
     monthly_tickets = Ticket.objects.filter(created_at__year=current_year).exclude(status='Cancelled') \
         .values('created_at__month').annotate(count=Count('id'))
 
@@ -110,14 +88,18 @@ def configuration_view(request):
 
 def login_view(request):
     if request.method == 'POST':
-        username = request.POST.get('username')
+        email = request.POST.get('email')
         password = request.POST.get('password')
-        user = authenticate(request, username=username, password=password)
+        
+        # Autenticar usando o email em vez do username
+        user = authenticate(request, email=email, password=password)
+        
         if user is not None:
             login(request, user)
-            return redirect('home')  # Change 'home' to the URL name of your home page
+            return redirect('home')  # Altere 'home' para o nome da URL da sua página inicial
         else:
-            messages.error(request, 'Invalid username or password.')
+            messages.error(request, 'Email ou senha inválidos.')
+    
     return render(request, 'user/login.html')
 
 def user_list(request):
@@ -130,6 +112,15 @@ def user_create(request):
         form = UserForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
+            
+            # Extrai o primeiro nome e o último nome do formulário
+            first_name = form.cleaned_data['first_name']
+            last_name = form.cleaned_data['last_name']
+            
+            # Cria o username no formato "primeiro_nome.ultimo_nome"
+            username = f"{first_name}.{last_name}"
+            user.username = username
+            
             password = form.cleaned_data['password']
             user.set_password(password)
             user.save()
@@ -150,6 +141,102 @@ def user_create(request):
     }
     return render(request, 'user/user_form.html', context)
 
+
+
+
+def auth_cpf(request):
+    if request.method == 'POST':
+        form = AuthCpfForm(request.POST)
+        if form.is_valid():
+            form.save()
+           
+            return redirect('home') 
+    else:
+        form = AuthCpfForm()
+
+    context = {
+        'form': form,
+    }
+
+    return render(request, 'user/auth_cpf.html', context)
+
+
+
+def driver_registration(request):
+    banks = Bank.objects.all()
+    error_message = None
+    
+    if request.method == 'POST':
+        form = DriverRegistrationForm(request.POST)
+        
+        if form.is_valid():
+            first_name = form.cleaned_data['first_name']
+            last_name = form.cleaned_data['last_name']
+            email = form.cleaned_data['email']
+            cpf = form.cleaned_data['cpf']
+            cnpj = form.cleaned_data['cnpj']
+            password = form.cleaned_data['password']
+            account_digit = form.cleaned_data['account_digit']
+            account_number = form.cleaned_data['account_number']
+            account_type = form.cleaned_data['account_type']
+            branch = form.cleaned_data['branch']
+            bank = form.cleaned_data['bank_id']
+
+            # Verifique se o CPF ou CNPJ está na tabela AuthCpf
+            if not AuthCpf.objects.filter(cpf=cpf).exists() and not AuthCpf.objects.filter(cnpj=cnpj).exists():
+                error_message = "CPF ou CNPJ não autorizado"
+            else:
+                # Crie o username no formato "primeiro_nome.ultimo_nome"
+                username = f"{first_name}.{last_name}"
+
+                # Crie um novo CustomUser
+                custom_user = CustomUser.objects.create(
+                    username=username,
+                    email=email,
+                    first_name=first_name,
+                    last_name=last_name,
+                    is_driver=True,
+                    is_staff=True,
+                    account_digit=account_digit,
+                    account_number=account_number,
+                    account_type=account_type,
+                    bank=bank,
+                    cnpj=cnpj,
+                    cpf=cpf,
+                    branch=branch,
+                )
+                
+                # Configure a senha do CustomUser
+                custom_user.set_password(password)
+                custom_user.save()
+                
+                # Crie uma instância do modelo Drivers
+                driver_instance = Drivers(
+                    driver=custom_user,
+                    cpf=cpf,
+                    cnpj=cnpj,
+                    bank=bank,  # Atribua a instância do banco selecionado
+                    branch=branch,
+                    account_type=account_type,
+                    account_number=account_number,
+                    account_digit=account_digit,
+                )
+                driver_instance.save()
+                
+                return redirect('home')  # Redirecione para a lista de drivers ou outra página desejada
+        else:
+            print(form.errors)
+    else:
+        form = DriverRegistrationForm()
+
+    context = {
+        'form': form,
+        'banks': banks,
+        'error_message': error_message  # Passe a mensagem de erro para o contexto
+    }
+    return render(request, 'user/register_driver.html', context)
+
+
 def user_edit(request, pk):
     user = get_object_or_404(CustomUser, pk=pk)
     if request.method == 'POST':
@@ -168,17 +255,36 @@ def user_delete(request, pk):
         return redirect('user_list')
     return render(request, 'user/user_confirm_delete.html', {'user': user})
 
-from django.shortcuts import render
 
-def forgot_password_view(request):
-    # Implementar o processamento de redefinição de senha aqui
-    if request.method == 'POST':
-        # Lógica para enviar um link de redefinição de senha por e-mail
-        # Você pode usar bibliotecas como 'django.contrib.auth.tokens' para gerar tokens
-        pass
+def password_reset_done(request):
+    return render(request, 'registration/password_reset_done.html')
 
-    return render(request, 'user/forgot_password.html')
+def password_reset_complete(request):
+    return render(request, 'registration/password_reset_complete.html')
 
+def reset_password(request):
+    if request.method == "POST":
+        form = SetPasswordForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            user = User.objects.filter(email=email).first()
+            if user:
+                uid = urlsafe_base64_encode(force_bytes(user.pk))
+                token = default_token_generator.make_token(user)
+                current_site = get_current_site(request)
+                mail_subject = 'Reset your password'
+                message = render_to_string('registration/password_reset_email.html', {
+                    'user': user,
+                    'domain': current_site.domain,
+                    'uid': uid,
+                    'token': token,
+                    'protocol': 'https' if request.is_secure() else 'http',
+                })
+                send_mail(mail_subject, message, 'your_email@gmail.com', [email])
+            return redirect('password_reset_done')
+    else:
+        form = SetPasswordForm()
+    return render(request, 'registration/password_reset_form.html', {'form': form})
 
 
 def ticket_list(request):
@@ -233,7 +339,6 @@ def send_mail_to_user(user, ticket, comment):
     plain_message = strip_tags(html_message)
     
     send_mail(subject, plain_message, from_email, recipient_list, html_message=html_message)
-
 
 
 def sla_calculation(created_at, priority):
@@ -309,8 +414,6 @@ def ticket_create(request):
 
     return render(request, 'tickets/ticket_form.html', context)
 
-
-
 #Função de sinal, observa o DeliveryCalendar, quando é criado gera os tickets abaixo
 @receiver(post_save, sender=DeliveryCalendar)
 def create_tickets(sender, instance, created, **kwargs):
@@ -356,8 +459,6 @@ def create_tickets(sender, instance, created, **kwargs):
                 sla_date=sla_date,
             )
 
-
-from datetime import timedelta
 #nessa função é para criar um ticket automaticamente quando um ticket do tipo "termination" é criado e solicitar ao usuario que tire os extratos de FGTS
 @receiver(post_save, sender=Ticket)
 def create_tickets(sender, instance, created, **kwargs):
@@ -512,8 +613,6 @@ def open_tickets_report_xlsx(request):
 
 
 
-def is_admin(user):
-    return user.is_superuser
 
 @csrf_exempt
 def change_ticket_status(request):
@@ -592,15 +691,19 @@ def company_create(request):
             return redirect('company_list')
     else:
         form = CompanyForm()
-    
-    # Recupera os usuários para preencher os campos de CAM, CAM Backup, Analyst e Analyst Backup
-    users = CustomUser.objects.all()
 
-    return render(request, 'company/company_form.html', {'form': form, 'users': users})
+    cam_users = CustomUser.objects.filter(is_cam=True)
+    analyst_users = CustomUser.objects.filter(is_analyst=True)
 
-from django.shortcuts import render, redirect
-from .models import Company, Deliverable
-from .forms import DeliverableForm
+    context = {
+        'cam_users': cam_users,
+        'analyst_users': analyst_users,
+        'form': form
+    }
+
+    return render(request, 'company/company_form.html', context)
+
+
 
 def company_detail(request, company_id):
     company = Company.objects.get(pk=company_id)
@@ -633,11 +736,6 @@ def add_deliverable_view(request, company_id):
         form = DeliverableForm()
 
     return render(request, 'calendar/add_deliverable.html', {'form': form, 'company': company})
-
-
-
-
-
 
 
 def delivery_calendar_create(request):
@@ -739,7 +837,6 @@ def analyze_work_order(request):
     }
 
     return render(request, 'workorder/analyze_workorder.html', context)
-
 
 
 @login_required
@@ -865,146 +962,185 @@ def report_workorder(request):
 
 
 
-from django.http import JsonResponse
-from django.shortcuts import render
-import qrcode
-from io import BytesIO
-from django.http import HttpResponse
-import zeep
-import requests
-
-def consultar_nfe(chave_acesso):
-    # URL da API da SEFAZ específica para consulta de NF-e
-    url_api_sefaz = "https://nfce.sefa.pr.gov.br/nfce/NFeConsultaProtocolo4?wsdl"
-
-    # Parâmetros da consulta, incluindo a chave de acesso
-    params = {'chave_acesso': chave_acesso}
-
+# Função para validar arquivo XML de NFe
+def validate_xml_nfe(xml_content):
     try:
-        # Faz a solicitação à API da SEFAZ
-        response = requests.get(url_api_sefaz, params=params)
+        # Adicione sua lógica de validação XML aqui
+        # Por exemplo, você pode usar a biblioteca lxml para fazer a validação XML.
+        # Substitua este exemplo pela sua lógica de validação específica.
+        from lxml import etree
+        xml_parser = etree.XMLParser(dtd_validation=True)
+        etree.fromstring(xml_content, xml_parser)
+        return True
+    except Exception as e:
+        return False
 
-        # Verifica se a solicitação foi bem-sucedida (código de status 200)
-        if response.status_code == 200:
-            # Analisa a resposta JSON ou XML, dependendo do formato retornado pela API
-            link_nfe = response.json()  # Se a API retornar JSON
-            # Ou
-            # dados = xml.etree.ElementTree.fromstring(response.text)  # Se a API retornar XML
 
-            # Obtenha o link do QR code da resposta e adicione-o aos dados
-            link_nfe['link_nfe'] = link_nfe.get('link_nfe', '')
 
-            # Faça algo com os dados, como exibi-los ou armazená-los
-            return link_nfe
-        else:
-            return {'erro': 'Erro ao consultar a NF-e'}
-    except requests.exceptions.RequestException as e:
-        # Tratar erros de solicitação, como falta de conexão com a internet
-        return {'erro': str(e)}
+# Função para validar arquivo PDF de NFe
+def validate_pdf_nfe(pdf_content):
+    try:
+        # Verifique se o arquivo tem extensão PDF
+        if not pdf_content.name.endswith('.pdf'):
+            return False, "O arquivo não tem a extensão PDF."
 
-import time
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import NoSuchElementException
-from django.shortcuts import render
-from .models import Invoice
+        pdf_data = pdf_content.read()
+        if b'nf' not in pdf_data:
+            return False, "O arquivo PDF não contém a palavra 'NF-e'."
 
+        chave_acesso = capture_chave_acesso(pdf_data)
+
+        if not re.match(r'^\d{44}$', chave_acesso):
+            return False, "A chave de acesso não possui o formato correto."
+
+        pdf_file_path = os.path.join(settings.MEDIA_ROOT, 'pdf_files', f'{chave_acesso}.pdf')
+        with open(pdf_file_path, 'wb') as destination:
+            destination.write(pdf_data)
+
+        return True, "Arquivo PDF de NFe válido e salvo com sucesso."
+    except Exception as e:
+        return False, f"Erro ao validar o arquivo PDF: {str(e)}"
+
+# Função para capturar a chave de acesso do PDF (substitua pela sua lógica)
+def capture_chave_acesso(pdf_content):
+
+    # Substitua esta lógica pela forma como você extrairá a chave de acesso do PDF.
+    # Aqui estamos apenas fazendo uma simulação.
+    chave_acesso = '12345678901234567890123456789012345678901234'
+    return chave_acesso
+
+# View para fazer upload de arquivos XML e PDF
 def read_nfe(request):
-    valor_total = None
-
     if request.method == 'POST':
-        # Verifica se o usuário inseriu um link da NF-e
-        if 'qr_code' in request.POST and request.POST['qr_code']:
-            url_nfe = request.POST['qr_code']
+        # Verifique se um arquivo XML foi enviado
+        if 'xml_file' in request.FILES:
+            xml_file = request.FILES['xml_file']
 
-            # A partir daqui, você pode extrair informações diretamente do HTML da nota fiscal
-            invoice = extrair_informacoes_nfe_selenium(url_nfe)
+        if xml_file:
+            # Chame a função para analisar o XML
+            invoice = parse_invoice_xml(xml_file)
 
-            # Verifica se as informações foram extraídas com sucesso
             if invoice:
-                # Faça algo com os dados da Invoice, como armazená-los no banco de dados
-                print(f"Número da NF-e: {invoice.number}")
-                print(f"Série: {invoice.series}")
-                print(f"Data de Emissão: {invoice.issuance_date}")
-                print(f"Data de Saída: {invoice.exit_date}")
-                print(f"CNPJ do Emissor: {invoice.emitter_cnpj}")
-                print(f"Nome do Emissor: {invoice.emitter_name}")
-                print(f"CNPJ do Destinatário: {invoice.recipient_cnpj}")
-                print(f"Nome do Destinatário: {invoice.recipient_name}")
-                print(f"Valor Total: {invoice.total_value}")
+                # O XML foi analisado com sucesso e uma fatura foi criada
+                return redirect('invoice_list')
+            else:
+                error_message = "Ocorreu um erro ao analisar o XML."
 
-    return render(request, 'nfes/read_nfe.html', {'valor_total': valor_total})
+            return render(request, 'nfes/read_nfe.html', {'error_message': error_message})
 
-# Função para extrair informações da página da nota fiscal
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import NoSuchElementException
-from decimal import Decimal
+        # Verifique se um arquivo PDF foi enviado
+        if 'pdf_file' in request.FILES:
+            pdf_file = request.FILES['pdf_file']
 
-def extrair_informacoes_nfe_selenium(url_nfe):
-    driver = None
+            # Valide o arquivo PDF de NFe
+            is_valid, message = validate_pdf_nfe(pdf_file)
+
+            if is_valid:
+                return JsonResponse({'message': message})
+            else:
+                return JsonResponse({'error': message}, status=400)
+
+        return JsonResponse({'message': 'Arquivos enviados com sucesso.'})
+
+    return render(request, 'nfes/read_nfe.html')
+
+
+
+
+def parse_invoice_xml(xml_file):
     try:
-        driver = webdriver.Chrome()  # Você precisa configurar o WebDriver adequado, como o ChromeDriver, aqui
-        driver.get(url_nfe)  # Abra a URL da nota fiscal no navegador
+        # Defina o namespace com base no namespace usado no XML da versão 4.0
+        ns = {"nfe": "http://www.portalfiscal.inf.br/nfe"}
 
-        # Use o Selenium para localizar e extrair as informações
-        wait = WebDriverWait(driver, 10)  # Espere até 10 segundos
-        items = driver.find_elements(By.XPATH, "//strong")
+        tree = ET.parse(xml_file)  # Carrega o arquivo XML
+        root = tree.getroot()
+
+        # Extrai informações do XML usando o namespace da versão 4.0
+        number = root.find(".//nfe:ide/nfe:nNF", namespaces=ns).text
+        series = root.find(".//nfe:ide/nfe:serie", namespaces=ns).text
         
-        for item in items:
-            print(item.text.strip())
+        # Parsing de datas no formato ISO 8601
+        issuance_date_str = root.find(".//nfe:ide/nfe:dhEmi", namespaces=ns).text
+        issuance_date = datetime.fromisoformat(issuance_date_str)
 
-        number_element = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/table/tbody/tr[176]/td[2]/text()[2]")))
-        number = number_element.text.strip()
+        exit_date_str = root.find(".//nfe:ide/nfe:dhSaiEnt", namespaces=ns).text
+        exit_date = datetime.fromisoformat(exit_date_str)
 
-        serie_element = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/table/tbody/tr[177]/td[2]/text()[2]")))
-        serie = serie_element.text.strip()
+        emitter_cnpj = root.find(".//nfe:emit/nfe:CNPJ", namespaces=ns).text
+        emitter_name = root.find(".//nfe:emit/nfe:xNome", namespaces=ns).text
+        recipient_cnpj = root.find(".//nfe:dest/nfe:CNPJ", namespaces=ns).text
+        recipient_name = root.find(".//nfe:dest/nfe:xNome", namespaces=ns).text
+        total_value = root.find(".//nfe:total/nfe:ICMSTot/nfe:vNF", namespaces=ns).text
 
-        emissao_element = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/table/tbody/tr[178]/td[2]/text()[2]")))
-        emissao_text = emissao_element.text.strip()
-
-        # Verifique se o texto contém uma data válida antes de tentar convertê-lo
-        emissao_date = None
-        if emissao_text:
-            try:
-                emissao_date = datetime.strptime(emissao_text, "%d-%m-%Y").strftime("%Y-%m-%d")
-            except ValueError:
-                print(f"Data de emissão inválida: {emissao_text}")
-        
-        # Total da nota
-        total_nota_element = wait.until(EC.presence_of_element_located((By.XPATH, "//label[contains(text(), 'Valor total R$:')]/following-sibling::span")))
-        total_nota = total_nota_element.text.strip()
-
-        # Limpe os valores de entrada e converta-os para Decimal
-        number_limpo = number.replace(",", "").strip()
-        serie_limpa = serie.strip()
-        total_nota_decimal = Decimal(total_nota.replace(",", "").strip())
-
-        invoice, created = Invoice.objects.get_or_create(
-            number=number_limpo,
-            series=serie_limpa,
-            total_value=total_nota_decimal,
-            issuance_date=emissao_date,
+        # Crie uma instância do modelo Invoice com as informações coletadas
+        invoice = Invoice(
+            number=number,
+            series=series,
+            issuance_date=issuance_date,
+            exit_date=exit_date,
+            emitter_cnpj=emitter_cnpj,
+            emitter_name=emitter_name,
+            recipient_cnpj=recipient_cnpj,
+            recipient_name=recipient_name,
+            total_value=total_value
         )
 
-        return invoice  # Retorna a instância da Invoice criada ou existente
+        # Salve a instância no banco de dados
+        invoice.save()
 
-    except NoSuchElementException as e:
-        print(f"Elemento não encontrado: {str(e)}")
+        return invoice
+
     except Exception as e:
-        print(f"Ocorreu um erro: {str(e)}")
-    finally:
-        if driver:
-            driver.quit()
+        # Lide com erros de análise XML ou outros erros aqui
+        print(f"Ocorreu um erro ao analisar o XML: {str(e)}")
+        return None
 
 
+def create_manual_invoice(request):
+    if request.method == 'POST':
+        form = ManualInvoiceForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('invoice_list')  # Redirecione para a lista de faturas após o salvamento bem-sucedido
+    else:
+        form = ManualInvoiceForm()
+    
+    return render(request, 'nfes/manual_invoice.html', {'form': form})
+
+def invoice_list(request):
+    invoices = Invoice.objects.all()
+    return render(request, 'nfes/invoice_list.html', {'invoices': invoices})
+
+def invoice_edit(request, pk):
+    invoice = get_object_or_404(Invoice, pk=pk)
+
+    if request.method == 'POST':
+        form = ManualInvoiceForm(request.POST, instance=invoice)
+        if form.is_valid():
+            form.save()
+            return redirect('invoice_list')  # Redirecionar após a edição bem-sucedida
+    else:
+        form = ManualInvoiceForm(instance=invoice)
+
+    return render(request, 'nfes/invoice_edit.html', {'form': form})
+
+def invoice_delete(request, pk):
+    invoice = get_object_or_404(Invoice, pk=pk)
+
+    if request.method == 'POST':
+        invoice.delete()
+        return redirect('invoice_list')  # Redirecionar após a exclusão bem-sucedida
+
+    return render(request, 'nfes/invoice_delete.html', {'invoice': invoice})
 
 
-
-
-
-
+def create_bank(request):
+    if request.method == 'POST':
+        form = BankForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('home')  # Redireciona para a lista de bancos ou outra página desejada após o cadastro
+    else:
+        form = BankForm()
+    
+    return render(request, 'finance/create_bank.html', {'form': form})

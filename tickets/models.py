@@ -9,19 +9,33 @@ from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.models import Permission
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.db import models
+from django.utils import timezone
 
+class Bank(models.Model):
+    name = models.CharField(max_length=100)
+    code = models.CharField(max_length=10)
+    website = models.URLField(blank=True)
+    address = models.CharField(max_length=200, blank=True)
+    phone = models.CharField(max_length=20, blank=True)
+
+    def __str__(self):
+        return self.name
+    
 
 class CustomUserManager(BaseUserManager):
-    def create_user(self, username, email, password=None, **extra_fields):
+    def create_user(self, email, password=None, **extra_fields):
         if not email:
             raise ValueError('O email do usuário deve ser definido')
         email = self.normalize_email(email)
-        user = self.model(username=username, email=email, **extra_fields)
+        user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, username, email, password=None, **extra_fields):
+    def create_superuser(self, email, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
 
@@ -30,59 +44,101 @@ class CustomUserManager(BaseUserManager):
         if extra_fields.get('is_superuser') is not True:
             raise ValueError('O superusuário deve ter is_superuser=True.')
 
-        return self.create_user(username, email, password, **extra_fields)
+        return self.create_user(email, password, **extra_fields)
     
-    def create_cam(self, username, email, password=None, **extra_fields):
+    def create_cam(self,email, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', False)
         extra_fields.setdefault('is_cam', True)
         if extra_fields.get('is_staff') is not True:
             raise ValueError('Um CAM deve ter is_staff=True.')
-        return self.create_user(username, email, password, **extra_fields)
+        return self.create_user(email, password, **extra_fields)
 
-    def create_analyst(self, username, email, password=None, **extra_fields):
+    def create_analyst(self,email, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', False)
         extra_fields.setdefault('is_analyst', True)
         if extra_fields.get('is_staff') is not True:
             raise ValueError('Um Analista deve ter is_staff=True.')
-        return self.create_user(username, email, password, **extra_fields)
+        return self.create_user(email, password, **extra_fields)
 
-    def create_manager(self, username, email, password=None, **extra_fields):
+    def create_manager(self,email, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', False)
         extra_fields.setdefault('is_manager', True)
         if extra_fields.get('is_staff') is not True:
             raise ValueError('Um Gerente deve ter is_staff=True.')
-        return self.create_user(username, email, password, **extra_fields)
+        return self.create_user(email, password, **extra_fields)
 
-class CustomUser(AbstractBaseUser):
-    username = models.CharField(max_length=150, unique=True)
+    def create_driver(self,email, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', False)
+        extra_fields.setdefault('is_manager', False)
+        extra_fields.setdefault('is_driver', True)
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Um Driver deve ter is_staff=True.')
+        return self.create_user(email, password, **extra_fields)
+
+class CustomUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
+    username = models.CharField(max_length=25, unique=True)
     first_name = models.CharField(max_length=30)
-    last_name = models.CharField(max_length=30)
+    last_name = models.CharField(max_length=30, blank=True, null=True)
     company = models.ForeignKey('Company', on_delete=models.CASCADE, blank=True, null=True)
-
-    objects = CustomUserManager()
-
-    USERNAME_FIELD = 'username'
-    EMAIL_FIELD = 'email'
-    REQUIRED_FIELDS = ['email']
 
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
     is_cam = models.BooleanField('CAM', default=False)
     is_analyst = models.BooleanField('Analyst', default=False)
     is_manager = models.BooleanField('Manager', default=False)
+    is_driver = models.BooleanField('Driver', default=False)
+
+    ACCOUNT_TYPES_CHOICES = (
+        ('Checking', 'Checking'),
+        ('Savings', 'Savings'),
+    )
+    # Campos específicos para drivers
+    cpf = models.CharField(max_length=14, unique=True, blank=True, null=True)
+    cnpj = models.CharField(max_length=18, unique=True, blank=True, null=True)
+    bank = models.ForeignKey(Bank, on_delete=models.CASCADE, blank=True, null=True)
+    branch = models.CharField(max_length=6, blank=True, null=True)
+    account_type = models.CharField(max_length=10, choices=ACCOUNT_TYPES_CHOICES, blank=True, null=True)
+    account_number = models.CharField(max_length=20, blank=True, null=True)
+    account_digit = models.CharField(max_length=2, blank=True, null=True)
+
+    objects = CustomUserManager()
+
+    USERNAME_FIELD = 'email'
 
     def __str__(self):
         return self.username
-    
-    def has_perm(self, perm, obj=None):
-        return self.is_staff
 
-    def has_module_perms(self, app_label):
-        return self.is_staff
+class Drivers(models.Model):
+    driver = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='driver_profile', blank=True, null=True)
+    ACCOUNT_TYPES_CHOICES = (
+        ('Checking', 'Checking'),
+        ('Savings', 'Savings'),
+    )
+    # Campos específicos para drivers
+    cpf = models.CharField(max_length=14, unique=True, blank=True, null=True)
+    cnpj = models.CharField(max_length=18, unique=True, blank=True, null=True)
+    bank = models.ForeignKey(Bank, on_delete=models.CASCADE, blank=True, null=True)
+    branch = models.CharField(max_length=6, blank=True, null=True)
+    account_type = models.CharField(max_length=10, choices=ACCOUNT_TYPES_CHOICES, blank=True, null=True)
+    account_number = models.CharField(max_length=20, blank=True, null=True)
+    account_digit = models.CharField(max_length=2, blank=True, null=True)
+
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"Driver-{self.driver.username}"
+
+
+class Protocol(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    protocol_number = models.CharField(max_length=20, unique=True)
 
 class Company(models.Model):
     name = models.CharField(max_length=100)
@@ -305,9 +361,6 @@ class Workorder(models.Model):
 
     def __str__(self):
         return f"Workorder for {self.company.name}"
-    
-
-    from django.db import models
 
 class Invoice(models.Model):
     number = models.CharField(max_length=20)
@@ -316,11 +369,26 @@ class Invoice(models.Model):
     exit_date = models.DateField()
     emitter_cnpj = models.CharField(max_length=14)
     emitter_name = models.CharField(max_length=200)
-    recipient_cnpj = models.CharField(max_length=14)
-    recipient_name = models.CharField(max_length=200)
+    recipient_cnpj = models.CharField(max_length=14, null=True, blank=True)
+    recipient_name = models.CharField(max_length=200, null=True, blank=True)
     total_value = models.DecimalField(max_digits=15, decimal_places=2)
+    driver = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
     
-    # You can add more fields as needed
 
     def __str__(self):
         return f"Invoice-{self.number}"
+
+class AuthCpf(models.Model):
+    driver_cpf =  models.CharField(max_length=14)
+    driver_cnpj = models.CharField(max_length=14)
+
+    def __str__(self):
+        return f"AuthCpf-{self.driver_cpf}"
+
+
+class AuthCpf(models.Model):
+    cpf = models.CharField(max_length=14, unique=True, null=True, blank=True)
+    cnpj = models.CharField(max_length=18, unique=True, null=True, blank=True)
+
+    def __str__(self):
+        return self.cpf

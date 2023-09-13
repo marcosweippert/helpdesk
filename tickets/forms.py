@@ -1,14 +1,16 @@
 # forms.py (aplicativo de usuários)
 
 from django import forms
-from .models import CustomUser, Company, Ticket, Comment, DeliveryCalendar, Deliverable, Workorder
+from .models import *
+from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.forms import *
 
 class UserForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput)
 
     class Meta:
         model = CustomUser
-        fields = ['username', 'email', 'first_name', 'last_name', 'password', 'is_staff', 'is_superuser', 'is_cam', 'is_analyst', 'is_manager']
+        fields = ['email', 'first_name', 'last_name', 'password', 'is_staff', 'is_superuser', 'is_cam', 'is_analyst', 'is_manager', 'is_driver']
 
 
 class TicketForm(forms.ModelForm):
@@ -41,7 +43,6 @@ class CommentForm(forms.Form):
     class Meta:
         model = Comment
         fields = ('author', 'body', 'to')
-
  
 
 class DeliveryCalendarForm(forms.ModelForm):
@@ -58,3 +59,36 @@ class WorkorderForm(forms.ModelForm):
     class Meta:
         model = Workorder
         fields = ['company', 'department', 'type', 'hours', 'priority', 'description', 'assigned_to']
+
+class ManualInvoiceForm(forms.ModelForm):
+    class Meta:
+        model = Invoice
+        fields = '__all__'
+
+from django import forms
+
+
+
+class CustomPasswordResetForm(PasswordResetForm):
+    email = forms.EmailField(
+        max_length=254,
+        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email Address'}),
+        label=_("Email"),
+    )
+class DriverRegistrationForm(forms.ModelForm):
+    is_driver = forms.BooleanField(initial=True, widget=forms.HiddenInput())  # Campo para definir que é um motorista
+    bank_id = forms.ModelChoiceField(queryset=Bank.objects.all(), empty_label="Select a Bank")
+
+    class Meta:
+        model = CustomUser
+        fields = ['first_name', 'last_name', 'email', 'password', 'cpf', 'cnpj', 'bank_id', 'branch', 'account_type', 'account_number', 'account_digit', 'is_driver']
+
+class AuthCpfForm(forms.ModelForm):
+    class Meta:
+        model = AuthCpf
+        fields = ['cpf', 'cnpj']
+
+class BankForm(forms.ModelForm):
+    class Meta:
+        model = Bank
+        fields = ['name', 'code']

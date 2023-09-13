@@ -35,75 +35,94 @@
                     <div class="col-lg-7">
                         <div class="p-5">
                             <div class="text-center">
-                                <h1 class="h4 text-gray-900 mb-4">Create an Account!</h1>
+                                <h1 class="h4 text-gray-900 mb-4">Create Driver Account!</h1>
                             </div>
                             <form class="user" method="post">
                                 {% csrf_token %}
                                 <div class="form-group row">
                                     <div class="col-sm-6 mb-3 mb-sm-0">
-                                        <input type="text" class="form-control form-control-user" id="exampleFirstName"
+                                        <input type="text" class="form-control form-control-user" id="FirstName"
                                             name="first_name" placeholder="First Name">
                                     </div>
                                     <div class="col-sm-6">
-                                        <input type="text" class="form-control form-control-user" id="exampleLastName"
+                                        <input type="text" class="form-control form-control-user" id="LastName"
                                             name="last_name" placeholder="Last Name">
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <input type="email" class="form-control form-control-user" id="exampleInputEmail"
+                                    <input type="email" class="form-control form-control-user" id="InputEmail"
                                         name="email" placeholder="Email Address">
                                 </div>
                                 <div class="form-group row">
                                     <div class="col-sm-6 mb-3 mb-sm-0">
                                         <input type="password" class="form-control form-control-user"
-                                            id="exampleInputPassword" name="password" placeholder="Password">
+                                            id="InputPassword" name="password" placeholder="Password">
                                     </div>
                                     <div class="col-sm-6">
                                         <input type="password" class="form-control form-control-user"
-                                            id="exampleRepeatPassword" name="password_repeat" placeholder="Repeat Password">
+                                            id="RepeatPassword" name="password_repeat" placeholder="Repeat Password">
                                     </div>
+                                </div>
+
+                                <!-- New fields for CustomUser -->
+                                <div class="form-group">
+                                    <input type="text" class="form-control form-control-user" id="CPF"
+                                        name="cpf" placeholder="CPF">
+                                </div>
+                                <div class="form-group">
+                                    <input type="text" class="form-control form-control-user" id="CNPJ"
+                                        name="cnpj" placeholder="CNPJ">
+                                </div>
+                                <div class="form-group">
+                                    <select class="form-control form-control-user" id="bank_id" name="bank_id">
+                                        <option value="" disabled selected>Select a Bank</option>
+                                        {% for bank in banks %}
+                                            <option value="{{ bank.id }}">{{ bank.name }} | {{ bank.code }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                                           
+                                <div class="form-group">
+                                    <input type="text" class="form-control form-control-user" id="Branch"
+                                        name="branch" placeholder="Branch">
+                                </div>
+                                <div class="form-group">
+                                    <select class="form-control form-control-user" id="account_type" name="account_type">
+                                        <option value="" disabled selected>Select an Account Type</option>
+                                        {% for value, label in form.fields.account_type.choices %}
+                                            <option value="{{ value }}" {% if value == form.initial.account_type %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <input type="text" class="form-control form-control-user" id="AccountNumber"
+                                        name="account_number" placeholder="Account Number">
+                                </div>
+                                <div class="form-group">
+                                    <input type="text" class="form-control form-control-user" id="AccountDigit"
+                                        name="account_digit" placeholder="Account Digit">
                                 </div>
                                 <!-- End of new fields for CustomUser -->
 
                                 <!-- Checkboxes for user roles -->
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="is_staff" name="is_staff">
-                                    <label class="form-check-label" for="is_staff">
-                                        Staff
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="is_manager" name="is_manager">
-                                    <label class="form-check-label" for="is_manager">
-                                        Manager
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="is_analyst" name="is_analyst">
-                                    <label class="form-check-label" for="is_analyst">
-                                        Analyst
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="is_cam" name="is_cam">
-                                    <label class="form-check-label" for="is_cam">
-                                        CAM
-                                    </label>
-                                </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="is_driver" name="is_driver">
                                     <label class="form-check-label" for="is_driver">
                                         Driver
                                     </label>
                                 </div>
-                                <hr>
+                                <!-- End of checkboxes for user roles -->
+
                                 <button type="submit" class="btn btn-primary btn-user btn-block">
                                     Register Account
                                 </button>
                             </form>
                             <hr>
                             <div class="text-center">
-                                <a class="small" href="{% url 'home' %}">Home</a>
+                                <a class="small" href="forgot_password.html">Forgot Password?</a>
+                            </div>
+                            <div class="text-center">
+                                <a class="small" href="{% url 'login' %}">Already have an account? Login!</a>
                             </div>
                         </div>
                     </div>

@@ -1,0 +1,7 @@
+<!-- invoice_delete.html -->
+<h1>Excluir Fatura</h1>
+<p>Você tem certeza de que deseja excluir a fatura "{{ invoice.number }}"?</p>
+<form method="post">
+  {% csrf_token %}
+  <button type="submit">Confirmar Exclusão</button>
+</form>

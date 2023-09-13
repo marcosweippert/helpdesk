@@ -7,10 +7,10 @@
   {% if error_message %}
     <p style="color: red;">{{ error_message }}</p>
   {% endif %}
-  <title>Leitura de NFe</title>
+  <title>Read NFe</title>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
-  
+  <script src="https://rawgit.com/schmich/instascan-builds/master/instascan.min.js"></script>
   <style>
     body {
       font-family: 'Poppins', Arial, sans-serif;
@@ -122,26 +122,31 @@
   </style>
 </head>
 <body>
-  <h1>Processar NF-e</h1>
+  <h1>Read NF-e</h1>
 
-  <!-- Botão para iniciar a leitura do QR code -->
-  
-
-  <form method="POST" enctype="multipart/form-data">
+  <form method="POST" enctype="multipart/form-data" id="upload-form">
     {% csrf_token %}
 
-    <label for="qr_code">QR Code:</label>
-    <input type="text" name="qr_code" id="qr_code" placeholder="Cole o QR Code"><br><br>
+    <label for="xml_file">XML File:</label>
+    <input type="file" name="xml_file" id="xml_file">
+    <br><br>
+    <label for="pdf_file">PDF File:</label>
+    <input type="file" name="pdf_file" id="pdf_file">
+    <br><br>
 
-    <input type="submit" value="Ler Nota Fiscal">
+    <input type="submit" value="Upload Files">
   </form>
-  <div>
-    <button id="start-scan" class="btn">Ler QR Code</button>
+
+  <!-- Progress bar para mostrar o progresso do envio -->
+  <div id="progress-container" style="display: none;">
+    <div id="progress-bar"></div>
   </div>
+  <a href="{% url 'home' %}" class="btn">
+    <i class="material-icons">arrow_back</i>
+    Home
+</a>
   <!-- Resultado da leitura do QR code será exibido aqui -->
   <div id="qr-result"></div>
-
-
 
   <!-- Biblioteca Instascan para a leitura do QR code -->
   <script src="https://rawgit.com/schmich/instascan-builds/master/instascan.min.js"></script>
@@ -152,41 +157,45 @@
 
     // Função para iniciar a leitura do QR code
     function startQRScan() {
-      if (!scanning) {
-        scanning = true;
-        const scanner = new Instascan.Scanner({ video: document.getElementById('preview') });
-        scanner.addListener('scan', function (content) {
-          document.getElementById('qr-result').textContent = 'Resultado da Leitura: ' + content;
-
-          // Preencha automaticamente o campo de QR code com o conteúdo lido
-          document.getElementById('qr_code').value = content;
-
-          // Marque que a leitura está concluída
-          scanning = false;
-
-          // Feche a câmera
-          scanner.stop();
-        });
-        Instascan.Camera.getCameras().then(function (cameras) {
-          if (cameras.length > 0) {
-            scanner.start(cameras[0]);
-          } else {
-            alert('Nenhuma câmera encontrada.');
-            scanning = false;
-          }
-        }).catch(function (e) {
-          console.error(e);
-          scanning = false;
-        });
-      }
+      // ... (seu código JavaScript atual) ...
     }
 
     // Adicione um evento de clique ao botão de leitura de QR code
     document.getElementById('start-scan').addEventListener('click', function () {
-      // Limpa o resultado anterior
+      // ... (seu código JavaScript atual) ...
+    });
+
+    // Adicione um evento de envio do formulário
+    document.getElementById('upload-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      // Exiba a barra de progresso e oculte o resultado anterior
+      document.getElementById('progress-container').style.display = 'block';
       document.getElementById('qr-result').textContent = '';
-      // Inicia a leitura do QR code
-      startQRScan();
+
+      // Obtenha o formulário e os arquivos
+      const form = e.target;
+      const formData = new FormData(form);
+
+      // Use a função fetch para enviar o formulário com os arquivos
+      fetch('/upload_endpoint', {
+        method: 'POST',
+        body: formData,
+      })
+      .then(response => response.json())
+      .then(data => {
+        // Aqui você pode processar a resposta do servidor, que pode incluir a mensagem de sucesso ou erro
+        document.getElementById('qr-result').textContent = data.message;
+
+        // Oculte a barra de progresso
+        document.getElementById('progress-container').style.display = 'none';
+      })
+      .catch(error => {
+        console.error(error);
+        // Manipule erros aqui, se necessário
+        document.getElementById('qr-result').textContent = 'Erro ao fazer upload do arquivo.';
+        document.getElementById('progress-container').style.display = 'none';
+      });
     });
   </script>
 </body>

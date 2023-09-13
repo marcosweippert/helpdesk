@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Cadastro de Empresa</title>
+    <title>Manual Invoice</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
     
@@ -112,59 +112,15 @@
     </style>
 </head>
 <body>
-    <h1><span class="material-icons">business</span> Cadastro de Empresa</h1>
+    <h1>Manual Invoice</h1>
     <form method="post">
         {% csrf_token %}
-        <label for="name">Nome da Empresa:</label>
-        <input type="text" name="name" id="name" required>
-        <label for="abreviation">Abreviação:</label>
-        <input type="text" name="abreviation" id="abreviation" required>
-        <label for="partner">Parceiro:</label>
-        <input type="text" name="partner" id="partner" required>
-        <label for="address">Endereço:</label>
-        <input type="text" name="address" id="address">
-        <label for="phone">Telefone:</label>
-        <input type="text" name="phone" id="phone" required>
-        <label for="cnpj">CNPJ:</label>
-        <input type="text" name="cnpj" id="cnpj" required>
-        <!-- Adicione os campos CAM, CAM Backup, Analyst e Analyst Backup -->
-        <label for="cam">CAM:</label>
-        <select name="cam" id="cam">
-            <option value="" selected>Selecione um CAM</option>
-            {% for user in cam_users %}
-                <option value="{{ user.pk }}">{{ user.first_name }} {{ user.last_name }}</option>
-            {% endfor %}
-        </select>
-        
-        <label for="cam_backup">CAM Backup:</label>
-        <select name="cam_backup" id="cam_backup">
-            <option value="" selected>Selecione um CAM Backup</option>
-            {% for user in cam_users %}
-                <option value="{{ user.pk }}">{{ user.first_name }} {{ user.last_name }}</option>
-            {% endfor %}
-        </select>
-        
-        <label for="analyst">Analyst:</label>
-        <select name="analyst" id="analyst">
-            <option value="" selected>Selecione um Analyst</option>
-            {% for user in analyst_users %}
-                <option value="{{ user.pk }}">{{ user.first_name }} {{ user.last_name }}</option>
-            {% endfor %}
-        </select>
-        
-        <label for="analyst_backup">Analyst Backup:</label>
-        <select name="analyst_backup" id="analyst_backup">
-            <option value="" selected>Selecione um Analyst Backup</option>
-            {% for user in analyst_users %}
-                <option value="{{ user.pk }}">{{ user.first_name }} {{ user.last_name }}</option>
-            {% endfor %}
-        </select>
-        <input type="submit" value="Salvar">
+        {{ form.as_p }}
+        <button type="submit">Save</button>
     </form>
-    
-    <a href="{% url 'home' %}">
-        <i class="material-icons">arrow_back</i> <!-- Ícone de voltar -->
-        Voltar para a página inicial
-    </a>
 </body>
+<a href="{% url 'home' %}" class="btn">
+    <i class="material-icons">arrow_back</i>
+    Home
+</a>
 </html>
