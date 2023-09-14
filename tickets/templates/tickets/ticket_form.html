@@ -141,8 +141,11 @@
         </select>
         <label for="link">Link:</label>
         <input type="text" name="link" id="link">
+        <br> <!-- Adiciona uma quebra de linha para separar os campos "link" e "attachment" -->
         <label for="attachment">Attachment:</label>
         <input type="file" name="attachment" id="attachment">
+        <br>
+        <br>
         <label for="department">Department:</label>
         <select name="department" id="department" required>
             {% for value, label in form.fields.department.choices %}

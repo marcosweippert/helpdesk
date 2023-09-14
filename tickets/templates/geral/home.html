@@ -147,7 +147,7 @@
                     <div class="bg-white py-2 collapse-inner rounded">
                         <h6 class="collapse-header">Custom Finance:</h6>
                         <a class="collapse-item" href="{% url 'create_bank' %}">Bank Create</a>
-                        <a class="collapse-item" href="#">Bank Files</a>
+                        <a class="collapse-item" href="#">Payments List</a>
                     </div>
                 </div>
             </li>
@@ -155,7 +155,7 @@
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseInvoice"
                     aria-expanded="true" aria-controls="collapseInvoice">
                     <i class="fa fa-file-invoice"></i>
-                    <span>Invoice</span>
+                    <span>Invoices</span>
                 </a>
                 <div id="collapseInvoice" class="collapse" aria-labelledby="headingInvoice"
                     data-parent="#accordionSidebar">
@@ -164,6 +164,8 @@
                         <a class="collapse-item" href="{% url 'read_nfe' %}">Read NF-e</a>
                         <a class="collapse-item" href="{% url 'create_manual_invoice' %}">Manual Invoice</a>
                         <a class="collapse-item" href="{% url 'invoice_list' %}">Invoice List</a>
+                        <a class="collapse-item" href="{% url 'driver_check' %}">Driver Check</a>
+                        <a class="collapse-item" href="{% url 'invoice_finance_approval' %}">Finance Approval</a>
                     </div>
                 </div>
             </li>

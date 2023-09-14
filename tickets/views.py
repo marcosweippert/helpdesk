@@ -817,7 +817,7 @@ def analyze_work_order(request):
             workorder.status = 'In Progress'
             workorder.cam_approval = 'Approved'
             workorder.billing = billing
-            workorder.approve_date = timezone.now()  # Define a data de aprovação
+            workorder.approve_date = now()  # Define a data de aprovação
             workorder.save()
             return redirect('execute_work_order')
         elif cam_approval == 'Reprove':
@@ -838,14 +838,13 @@ def analyze_work_order(request):
 
     return render(request, 'workorder/analyze_workorder.html', context)
 
-
 @login_required
 def execute_work_order(request):
     if request.method == 'POST':
         workorder_id = request.POST.get('workorder_id')
         workorder = Workorder.objects.get(id=workorder_id)
         workorder.status = 'Executed'
-        workorder.complete_date = timezone.now()
+        workorder.complete_date = now()
         workorder.save()
         messages.success(request, 'Work Order has been executed.')
         return redirect('work_order_dashboard')
@@ -883,7 +882,6 @@ def create_tickets(sender, instance, created, **kwargs):
                 type=activity,
                 sla_date=getattr(instance, f'{activity}_date', ticket_sla_date),
             )
-
 
 @login_required
 def rework_work_order(request):
@@ -975,8 +973,6 @@ def validate_xml_nfe(xml_content):
     except Exception as e:
         return False
 
-
-
 # Função para validar arquivo PDF de NFe
 def validate_pdf_nfe(pdf_content):
     try:
@@ -1044,64 +1040,68 @@ def read_nfe(request):
 
     return render(request, 'nfes/read_nfe.html')
 
-
-
-
 def parse_invoice_xml(xml_file):
     try:
-        # Defina o namespace com base no namespace usado no XML da versão 4.0
         ns = {"nfe": "http://www.portalfiscal.inf.br/nfe"}
-
-        tree = ET.parse(xml_file)  # Carrega o arquivo XML
+        tree = ET.parse(xml_file)
         root = tree.getroot()
-
-        # Extrai informações do XML usando o namespace da versão 4.0
         number = root.find(".//nfe:ide/nfe:nNF", namespaces=ns).text
         series = root.find(".//nfe:ide/nfe:serie", namespaces=ns).text
-        
-        # Parsing de datas no formato ISO 8601
         issuance_date_str = root.find(".//nfe:ide/nfe:dhEmi", namespaces=ns).text
         issuance_date = datetime.fromisoformat(issuance_date_str)
-
         exit_date_str = root.find(".//nfe:ide/nfe:dhSaiEnt", namespaces=ns).text
         exit_date = datetime.fromisoformat(exit_date_str)
-
         emitter_cnpj = root.find(".//nfe:emit/nfe:CNPJ", namespaces=ns).text
         emitter_name = root.find(".//nfe:emit/nfe:xNome", namespaces=ns).text
         recipient_cnpj = root.find(".//nfe:dest/nfe:CNPJ", namespaces=ns).text
         recipient_name = root.find(".//nfe:dest/nfe:xNome", namespaces=ns).text
         total_value = root.find(".//nfe:total/nfe:ICMSTot/nfe:vNF", namespaces=ns).text
 
-        # Crie uma instância do modelo Invoice com as informações coletadas
-        invoice = Invoice(
-            number=number,
-            series=series,
-            issuance_date=issuance_date,
-            exit_date=exit_date,
-            emitter_cnpj=emitter_cnpj,
-            emitter_name=emitter_name,
-            recipient_cnpj=recipient_cnpj,
-            recipient_name=recipient_name,
-            total_value=total_value
-        )
+        # Verifique se o motorista (emitente) já existe no sistema com base no CPF ou CNPJ
+        driver = CustomUser.objects.filter(Q(cpf=emitter_cnpj) | Q(cnpj=emitter_cnpj)).first()
 
-        # Salve a instância no banco de dados
-        invoice.save()
+        if driver:
+            # Emitente cadastrado, atualize a coluna 'driver' da fatura com o motorista existente
+            invoice = Invoice.objects.create(
+                number=number,
+                series=series,
+                issuance_date=issuance_date,
+                exit_date=exit_date,
+                emitter_cnpj=emitter_cnpj,
+                emitter_name=emitter_name,
+                recipient_cnpj=recipient_cnpj,
+                recipient_name=recipient_name,
+                total_value=total_value,
+                status='Finance Approval',  # Defina o status conforme necessário
+                driver=driver
+            )
+        else:
+            # Emitente não cadastrado, crie uma nova fatura com status 'Driver Check'
+            invoice = Invoice.objects.create(
+                number=number,
+                series=series,
+                issuance_date=issuance_date,
+                exit_date=exit_date,
+                emitter_cnpj=emitter_cnpj,
+                emitter_name=emitter_name,
+                recipient_cnpj=recipient_cnpj,
+                recipient_name=recipient_name,
+                total_value=total_value,
+                status='Driver Check'  # Defina o status conforme necessário
+            )
 
         return invoice
 
     except Exception as e:
-        # Lide com erros de análise XML ou outros erros aqui
         print(f"Ocorreu um erro ao analisar o XML: {str(e)}")
         return None
-
 
 def create_manual_invoice(request):
     if request.method == 'POST':
         form = ManualInvoiceForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('invoice_list')  # Redirecione para a lista de faturas após o salvamento bem-sucedido
+            return redirect('invoice_list')
     else:
         form = ManualInvoiceForm()
     
@@ -1132,6 +1132,61 @@ def invoice_delete(request, pk):
         return redirect('invoice_list')  # Redirecionar após a exclusão bem-sucedida
 
     return render(request, 'nfes/invoice_delete.html', {'invoice': invoice})
+
+def driver_check(request):
+    if request.method == 'POST':
+        invoice_id = request.POST.get('invoice_id')
+        operation_approval = request.POST.get('operation_approval')
+        invoice = get_object_or_404(Invoice, id=invoice_id)
+        
+        if operation_approval == 'Approve':
+            invoice.status = 'Finance Approval'
+            invoice.operation_approval = 'Approved'
+            invoice.approve_date = now()  # Define a data de aprovação
+            invoice.save()
+            return redirect('invoice_list')  # Redirecione para a lista de invoices após a aprovação
+        elif operation_approval == 'Reject':
+            invoice.status = 'Driver Check'
+            invoice.operation_approval = 'Rejected'
+            invoice.approve_date = None  # Define a data de aprovação como nula ao rejeitar
+            invoice.save()
+            return redirect('invoice_list')  # Redirecione para a lista de invoices após a rejeição
+
+    invoices = Invoice.objects.filter(status='Driver Check')
+
+    context = {
+        'invoices': invoices,
+    }
+
+    return render(request, 'nfes/invoice_driver_check.html', context)
+
+def invoice_finance_approval(request):
+    if request.method == 'POST':
+        invoice_id = request.POST.get('invoice_id')
+        finance_approval = request.POST.get('finance_approval')
+        invoice = get_object_or_404(Invoice, id=invoice_id)
+        
+        if finance_approval == 'Approve':
+            invoice.status = 'Approved'
+            invoice.finance_approval = 'Approved'
+            invoice.approve_date = now()  # Define a data de aprovação
+            invoice.save()
+            return redirect('invoice_list')  # Redirecione para a lista de invoices após a aprovação
+        elif finance_approval == 'Reject':
+            invoice.status = 'Rejected'
+            invoice.finance_approval = 'Rejected'
+            invoice.approve_date = None  # Define a data de aprovação como nula ao rejeitar
+            invoice.save()
+            return redirect('invoice_list')  # Redirecione para a lista de invoices após a rejeição
+
+    invoices = Invoice.objects.filter(status='Finance Approval')
+
+    context = {
+        'invoices': invoices,
+    }
+
+    return render(request, 'nfes/invoice_finance_approval.html', context)
+
 
 
 def create_bank(request):

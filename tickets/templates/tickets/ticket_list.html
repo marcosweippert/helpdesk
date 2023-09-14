@@ -21,6 +21,7 @@
             padding: 5px;
             border-bottom: 1px solid #ccc; /* Adicionada borda na parte inferior do h1 */
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -38,6 +39,7 @@
             vertical-align: middle;
             margin-right: 5px;
         }
+
         .notification-icon {
             color: green; /* Alterada para verde */
             font-size: 16px;
@@ -125,6 +127,7 @@
             border-radius: 4px;
             padding: 1px 5px;
         }
+
         /* Novo estilo para a coluna de status */
         .status-column {
             position: relative;
@@ -154,27 +157,30 @@
             vertical-align: middle;
             margin-right: 5px;
         }
+
         /* Estilo para a mensagem de aviso */
         .status-warning {
             color: red;
             font-size: 12px;
             margin-top: 5px;
         }
+
+        /* Estilo para os filtros */
+        label {
+            margin-right: 5px;
+        }
+
+        select {
+            font-size: 12px;
+        }
     </style>
 </head>
 <body>
     <h1><span class="material-icons">assignment</span> All Tickets</h1>
     <div>
-        <label for="status-filter">Filter by Status:</label>
-        <select id="status-filter" onchange="applyFilters()">
-            <option value="">All</option>
-            <option value="Open">Open</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Closed">Closed</option>
-            <option value="New">New</option>
-            <option value="Waiting on contact">Waiting on contact</option>
-            <option value="Waiting on us">Waiting on us</option>
-        </select>
+        <label for="keyword-filter">Filter by Keyword:</label>
+        <input type="text" id="keyword-filter" onkeyup="applyFilters()">
+        <!-- Adicione outros filtros aqui (solicitante, proprietário, data SLA) -->
     </div>
     <table>
         <thead>
@@ -220,6 +226,15 @@
                     {% elif ticket.status == 'Waiting on us' %}
                         <span class="status-waiting-us status-text" data-ticket-id="{{ ticket.id }}" data-ticket-status="Waiting on us">{{ ticket.status }}</span>
                     {% endif %}
+                    <!-- Adicione um select para o filtro de status dentro da coluna -->
+                    <select class="status-select" data-ticket-id="{{ ticket.id }}">
+                        <option value="Open">Open</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Closed">Closed</option>
+                        <option value="New">New</option>
+                        <option value="Waiting on contact">Waiting on contact</option>
+                        <option value="Waiting on us">Waiting on us</option>
+                    </select>
                 </td>
                 <td>
                     {% if ticket.comments_count > 0 %}
@@ -248,34 +263,49 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <script>
-        function applyFilters() {
-            var statusFilter = $('#status-filter').val();
+function applyFilters() {
+    var statusFilter = $('#status-filter').val();
+    var requesterFilter = $('#requester-filter').val(); // Adicione um elemento select para o solicitante
+    var ownerFilter = $('#owner-filter').val(); // Adicione um elemento select para o proprietário
+    var slaDateFilter = $('#sla-date-filter').val(); // Adicione um elemento select para a data SLA
 
-            $('tbody tr').each(function() {
-                var status = $(this).find('.status-text').data('ticket-status');
-                var requester = $(this).find('.requester-text').data('ticket-requester');
-                var owner = $(this).find('.owner-text').data('ticket-owner');
-                var slaDate = $(this).find('.sla-text').data('ticket-sla');
+    $('tbody tr').each(function() {
+        var status = $(this).find('.status-text').data('ticket-status');
+        var requester = $(this).find('.requester-text').data('ticket-requester');
+        var owner = $(this).find('.owner-text').data('ticket-owner');
+        var slaDate = $(this).find('.sla-text').data('ticket-sla');
 
-                var showRow = true;
-                if (statusFilter && status !== statusFilter) {
-                    showRow = false;
-                }
+        var showRow = true;
 
-                // Adicione aqui a lógica para os outros filtros (requester, owner, slaDate)
-                // Use a variável showRow para controlar se a linha deve ser exibida ou não.
-
-                if (showRow) {
-                    $(this).show();
-                } else {
-                    $(this).hide();
-                }
-            });
+        // Verifique os filtros adicionais (solicitante, proprietário, data SLA)
+        if (statusFilter && status !== statusFilter) {
+            showRow = false;
         }
 
-        $(document).ready(function() {
-            applyFilters();
-        });
+        if (requesterFilter && requester !== requesterFilter) {
+            showRow = false;
+        }
+
+        if (ownerFilter && owner !== ownerFilter) {
+            showRow = false;
+        }
+
+        if (slaDateFilter && slaDate !== slaDateFilter) {
+            showRow = false;
+        }
+
+        if (showRow) {
+            $(this).show();
+        } else {
+            $(this).hide();
+        }
+    });
+}
+
+$(document).ready(function() {
+    applyFilters();
+});
+
     </script>
 </body>
 </html>

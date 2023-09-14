@@ -134,7 +134,48 @@ class Drivers(models.Model):
 
     def __str__(self):
         return f"Driver-{self.driver.username}"
+    
+class Invoice(models.Model):
+    number = models.CharField(max_length=20)
+    series = models.CharField(max_length=10)
+    issuance_date = models.DateField()
+    exit_date = models.DateField()
+    emitter_cnpj = models.CharField(max_length=14)
+    emitter_name = models.CharField(max_length=200)
+    recipient_cnpj = models.CharField(max_length=14, null=True, blank=True)
+    recipient_name = models.CharField(max_length=200, null=True, blank=True)
+    total_value = models.DecimalField(max_digits=15, decimal_places=2)
+    driver = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
+    status_choices = [
+        ('Pending', 'Pending'),
+        ('Approved', 'Approved'),
+        ('Finance Approval', 'Finance Approval'),
+        ('Operation Approval', 'Operation Approval'),
+        ('Paid', 'Paid'),
+        ('Driver Check', 'Driver Check'),
+    ]
+    status = models.CharField(max_length=20, choices=status_choices, default='Pending')
+    approval_comments = models.TextField(blank=True, null=True)
+    approved_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, related_name='approved_invoices', null=True, blank=True)
+    approval_date = models.DateTimeField(null=True, blank=True)
+    finance_approval_comments = models.TextField(blank=True, null=True)
+    finance_approved_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, related_name='finance_approved_invoices', null=True, blank=True)
+    finance_approval_date = models.DateTimeField(null=True, blank=True)
+    sla_date = models.DateField(null=True, blank=True)
+    operation_approved_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, related_name='operation_approved_invoices', null=True, blank=True)
+    operation_approval_date = models.DateTimeField(null=True, blank=True)
+    operation_approval_comments = models.TextField(blank=True, null=True)
 
+    def __str__(self):
+        return f"Invoice-{self.number}"
+    
+class ApprovalLog(models.Model):
+    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
+    approval_date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"ApprovalLog-{self.id}"
 
 class Protocol(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
@@ -362,28 +403,6 @@ class Workorder(models.Model):
     def __str__(self):
         return f"Workorder for {self.company.name}"
 
-class Invoice(models.Model):
-    number = models.CharField(max_length=20)
-    series = models.CharField(max_length=10)
-    issuance_date = models.DateField()
-    exit_date = models.DateField()
-    emitter_cnpj = models.CharField(max_length=14)
-    emitter_name = models.CharField(max_length=200)
-    recipient_cnpj = models.CharField(max_length=14, null=True, blank=True)
-    recipient_name = models.CharField(max_length=200, null=True, blank=True)
-    total_value = models.DecimalField(max_digits=15, decimal_places=2)
-    driver = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
-    
-
-    def __str__(self):
-        return f"Invoice-{self.number}"
-
-class AuthCpf(models.Model):
-    driver_cpf =  models.CharField(max_length=14)
-    driver_cnpj = models.CharField(max_length=14)
-
-    def __str__(self):
-        return f"AuthCpf-{self.driver_cpf}"
 
 
 class AuthCpf(models.Model):

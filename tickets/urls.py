@@ -39,7 +39,8 @@ urlpatterns = [
     path('invoices/', views.invoice_list, name='invoice_list'),
     path('invoices/<int:pk>/edit/', views.invoice_edit, name='invoice_edit'),
     path('invoices/<int:pk>/delete/', views.invoice_delete, name='invoice_delete'),
-
+    path('driver_check', views.driver_check, name='driver_check'),
+    path('invoice_finance_approval/', views.invoice_finance_approval, name='invoice_finance_approval'),
 
 
     path('tickets/', views.ticket_list, name='ticket_list'),
@@ -79,6 +80,8 @@ urlpatterns = [
     path('report_workorder/', views.report_workorder, name='report_work_order'),
 
     path('driver_register/', views.driver_registration, name='driver_registration'),
+
+
 
     path('auth_cpf/', views.auth_cpf, name='auth_cpf'),
 

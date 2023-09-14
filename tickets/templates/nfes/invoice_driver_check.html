@@ -1,9 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Invoice List</title>
-    <!-- Importe o Materialize CSS e a fonte dos ícones do Google -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <title>Drivers Check - Invoices</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
@@ -162,59 +160,58 @@
         }
     </style>
 </head>
-<h1>Invoice List</h1>
-<table>
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Number</th>
-            <th>Series</th>
-            <th>Issuance date</th>
-            <th>Exit date</th>
-            <th>Emitter CNPJ</th>
-            <th>Emitter Name</th>
-            <th>Recipient CNPJ</th>
-            <th>Recipient Name</th>
-            <th>Total Value</th>
-            <th>Driver</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for invoice in invoices %}
-        <tr>
-            <td>{{ invoice.id }}</td>
-            <td>{{ invoice.number }}</td>
-            <td>{{ invoice.series }}</td>
-            <td>{{ invoice.issuance_date|date:'d/m/Y' }}</td>
-            <td>{{ invoice.exit_date|date:'d/m/Y' }}</td>
-            <td>{{ invoice.emitter_cnpj }}</td>
-            <td>{{ invoice.emitter_name }}</td>
-            <td>{{ invoice.recipient_cnpj }}</td>
-            <td>{{ invoice.recipient_name }}</td>
-            <td>{{ invoice.total_value }}</td>
-            <td>{{ invoice.driver.first_name }} {{ invoice.driver.last_name }}</td>
-            <td>
-                <a href="{% url 'invoice_edit' invoice.pk %}" class="btn-small">
-                    <i class="material-icons">edit</i> Editar
-                </a>
-                <a href="{% url 'invoice_delete' invoice.pk %}" class="btn-small">
-                    <i class="material-icons">delete</i> Excluir
-                </a>
-            </td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="11">Nenhuma fatura encontrada.</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-<a href="{% url 'home' %}" class="btn">
-    <i class="material-icons">arrow_back</i>
-    Home
-</a>
-<a href="{% url 'read_nfe' %}" class="btn">
-    <i class="material-icons">add_circle</i>
-    Read NF-e
-</a>
+<body>
+    <h1>Drivers Check - Invoices</h1>
+    {% if invoices %}
+    <table>
+        <thead>
+            <tr>
+                <th>Invoice Number</th>
+                <th>Emitter</th>
+                <th>Recipient</th>
+                <th>Total Value</th>
+                <th>Driver</th>
+                <th>Status</th>
+                <th>Operation Approval</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for invoice in invoices %}
+            <form method="post">
+                {% csrf_token %}
+                <tr>
+                    <td>{{ invoice.number }}</td>
+                    <td>{{ invoice.emitter_name }}</td>
+                    <td>{{ invoice.recipient_name }}</td>
+                    <td>{{ invoice.total_value }}</td>
+                    <td>{{ invoice.driver }}</td>
+                    <td>{{ invoice.status }}</td>
+                    <td>
+                        <select name="operation_approval" {% if invoice.status != 'Driver Check' %}disabled{% endif %}>
+                            <option value="Approve">Approve</option>
+                            <option value="Reject">Reject</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="hidden" name="invoice_id" value="{{ invoice.id }}">
+                        <input type="submit" value="Submit" class="btn" {% if invoice.status != 'Driver Check' %}disabled{% endif %}>
+                        <a href="{% url 'invoice_edit' invoice.pk %}" class="btn-small">
+                            <i class="material-icons">edit</i> Editar
+                        </a>
+                        <a href="{% url 'invoice_delete' invoice.pk %}" class="btn-small">
+                            <i class="material-icons">delete</i> Excluir
+                        </a>
+                    </td>
+                </tr>
+            </form>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No invoices awaiting finance approval.</p>
+    {% endif %}
+    <a href="{% url 'home' %}" class="btn-secondary"><span class="material-icons">arrow_back</span>Home</a>
+    <a href="{% url 'create_work_order' %}" class="btn-secondary"><span class="material-icons">arrow_back</span>Back to Create Work Order</a>
+</body>
+</html>

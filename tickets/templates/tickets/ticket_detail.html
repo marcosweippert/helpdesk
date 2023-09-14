@@ -1,80 +1,109 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
-    <title>Detalhes do Ticket - Helpdesk</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket Details</title>
     <!-- Importe o Materialize CSS e a fonte dos ícones do Google -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css"> <!-- Adicione um arquivo de estilo externo -->
     <style>
         body {
             font-family: 'Poppins', sans-serif;
             padding: 20px;
         }
 
-        /* Estilização do <h2> */
-        h2 {
+        /* Estilização do <h1> no cabeçalho */
+        header h1 {
             color: #555;
             margin-bottom: 20px;
-            font-size: 20px; /* Tamanho da fonte alterado para 20 pixels */
+            font-size: 24px; /* Aumentei o tamanho da fonte para 24 pixels */
         }
 
-        /* Estilização do nome do usuário no histórico de comentários */
-        .comment-history p strong {
-            font-weight: bold;
-        }
-
+        /* Estilização das informações do ticket */
         .ticket-info {
-            margin-bottom: 20px;
-            border: 1px solid #ccc;
-            padding: 10px;
-            border-radius: 5px;
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            grid-gap: 10px;
-        }
-
-        .ticket-info p {
-            margin: 5px 0;
             display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
         }
 
-        .ticket-info strong {
-            font-weight: bold;
-        }
-
-        .change-assigned-form {
-            margin-top: 20px;
-            max-width: 400px;
+        .ticket-details {
+            flex: 1;
             border: 1px solid #ccc;
             padding: 10px;
             border-radius: 5px;
+            margin-right: 10px;
         }
 
-        .change-assigned-form select {
-            display: block;
+        .ticket-details h2 {
+            color: #555;
+            font-size: 20px;
+        }
+
+        .info-item {
             margin-bottom: 10px;
         }
 
-        .change-assigned-form button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
+        .info-item strong {
+            display: block;
+            font-weight: bold;
         }
 
-        .change-assigned-form button:hover {
-            background-color: #45a049;
-        }
-
-        .comment-form {
-            margin-top: 20px;
-            max-width: 600px;
+        .info-text {
             border: 1px solid #ccc;
             padding: 10px;
             border-radius: 5px;
+        }
+
+        /* Estilização das informações do usuário */
+        .user-details {
+            flex: 1;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .user-details p {
+            margin-bottom: 5px;
+        }
+
+        .user-details strong {
+            font-weight: bold;
+        }
+
+        /* Estilização do histórico de comentários */
+        .comment-history {
+            flex: 1;
+        }
+
+        .comment-history h2 {
+            color: #555;
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+        .comment {
+            margin-bottom: 10px;
+        }
+
+        .comment strong {
+            font-weight: bold;
+        }
+
+        /* Estilização do formulário de comentários */
+        .comment-form {
+            flex: 1;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .comment-form h2 {
+            color: #555;
+            font-size: 20px;
+            margin-bottom: 20px;
         }
 
         .comment-form textarea {
@@ -87,13 +116,7 @@
             resize: vertical;
         }
 
-        .comment-section {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-gap: 20px;
-        }
-
-        /* Novos estilos para os checkboxes */
+        /* Estilização das checkboxes de usuário */
         .user-checkboxes {
             list-style: none;
             padding: 0;
@@ -137,90 +160,109 @@
             margin-right: 10px;
             vertical-align: middle;
         }
+
+        /* Estilização do botão de voltar */
+        footer a {
+            display: inline-block;
+            margin-top: 20px;
+            text-decoration: none;
+            color: #0074cc;
+        }
+
+        footer a i {
+            vertical-align: middle;
+        }
     </style>
 </head>
 <body>
-    <h2><span class="material-icons">create</span> Ticket Details #{{ ticket.id }}</h2>
-    <div class="ticket-info">
-        <div>
-            <p><strong>Title:</strong></p>
-            <div style="border: 1px solid #ccc; padding: 10px; border-radius: 5px;">
-                {{ ticket.title }}
-            </div>
-
-            <p><strong>Description:</strong></p>
-            <div style="border: 1px solid #ccc; padding: 10px; border-radius: 5px;">
-                {{ ticket.description }}
-            </div>
-            <p><strong>Company:</strong>  {{ ticket.company }}</p>
-            <p><strong>Created At:</strong> {{ ticket.created_at|date:'d/m/Y H:i' }} </p>
-            <p><strong>SLA Date:</strong> {{ ticket.sla_date|date:'d/m/Y H:i' }} </p>
-            <p><strong>Prioridade:</strong> {{ ticket.get_priority_display }} </p>
-            {% if ticket.status != 'Closed' %}
-            <form method="post" action="{% url 'ticket_close' ticket.id %}">
-                {% csrf_token %}
-                <button type="submit" class="btn waves-effect waves-light" style="width: 100%;">Close Ticket</button>
-            </form>
-            {% endif %}
-
-        </div>
-        <div>
-            <p><strong>Created By:</strong> {{ ticket.created_by.first_name }} {{ ticket.created_by.last_name }} </p>
-            <p><strong>Status:</strong> {{ ticket.get_status_display }} </p>
-            <p><strong>Assigned To:</strong> {% if ticket.assigned_to %}{{ ticket.assigned_to.first_name }} {{ ticket.assigned_to.last_name }}{% else %}Não atribuído{% endif %} </p>
-            <p><strong>Closed At:</strong> {{ ticket.closed_at|date:'d/m/Y H:i' }} </p>
-            {% if ticket.closed_at %}
-            <p><strong>Closed By:</strong> {{ ticket.closed_by }}</p>
-            {% else %}
-            <p><strong>Closed By:</strong> Não atribuído</p>
-            {% endif %}
-            <p><strong>Link:</strong> {{ ticket.link }}</p>
-            <p><strong>Attachment:</strong> {{ ticket.attachment }}</p>
-            <p><strong>Department:</strong> {{ ticket.department }}</p>
-            <p><strong>Type:</strong> {{ ticket.type }}</p>
-        </div>
-        
-    </div>
-
-    <div class="comment-section">
-        <div class="comment-history">
-            <h2>Historical Comments</h2>
-            {% for comment in ticket.comments.all %}
-                {% if 'Notificação para' not in comment.body %} {# Verifica se é uma notificação ou um comentário normal #}
-                    <div class="comment">
-                        <p><strong>{{ comment.created_at|date:'d/m/Y H:i' }} {{ comment.author.first_name }} {{ comment.author.last_name }}</strong>: {{ comment.body }}</p>
-                    </div>
+    <header>
+        <h1>Ticket Details </Details></h1>
+    </header>
+    <main>
+        <section class="ticket-info">
+            <div class="ticket-details">
+                <h2><span class="material-icons">create</span> Ticket Details #{{ ticket.id }}</h2>
+                <div class="info-item">
+                    <strong>Title:</strong>
+                    <div class="info-text">{{ ticket.title }}</div>
+                </div>
+                <div class="info-item">
+                    <strong>Description:</strong>
+                    <div class="info-text">{{ ticket.description }}</div>
+                </div>
+                <p><strong>Company:</strong>  {{ ticket.company }}</p>
+                <p><strong>Created At:</strong> {{ ticket.created_at|date:'d/m/Y H:i' }} </p>
+                <p><strong>SLA Date:</strong> {{ ticket.sla_date|date:'d/m/Y H:i' }} </p>
+                <p><strong>Priority:</strong> {{ ticket.get_priority_display }} </p>
+                {% if ticket.status != 'Closed' %}
+                <form method="post" action="{% url 'ticket_close' ticket.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn waves-effect waves-light" style="width: 100%;">Close Ticket</button>
+                </form>
                 {% endif %}
-            {% empty %}
-                <p>No comments.</p>
-            {% endfor %}
-        </div>
+            </div>
+            <div class="user-details">
+                <p><strong>Created By:</strong> {{ ticket.created_by.first_name }} {{ ticket.created_by.last_name }} </p>
+                <p><strong>Status:</strong> {{ ticket.get_status_display }} </p>
+                <p><strong>Assigned To:</strong> {% if ticket.assigned_to %}{{ ticket.assigned_to.first_name }} {{ ticket.assigned_to.last_name }}{% else %}Não atribuído{% endif %} </p>
+                <p><strong>Closed At:</strong> {{ ticket.closed_at|date:'d/m/Y H:i' }} </p>
+                {% if ticket.closed_at %}
+                <p><strong>Closed By:</strong> {{ ticket.closed_by }}</p>
+                {% else %}
+                <p><strong>Closed By:</strong> Não atribuído</p>
+                {% endif %}
+                <p><strong>Link:</strong> {{ ticket.link }}</p>
+                <p><strong>Attachment:</strong> {{ ticket.attachment }}</p>
+                <p><strong>Department:</strong> {{ ticket.department }}</p>
+                <p><strong>Type:</strong> {{ ticket.type }}</p>
+            </div>
+        </section>
 
-        <div class="comment-form">
-            <h2>Add a comment</h2>
-            <form method="post">
-                {% csrf_token %}
-                {{ form.comment }}
-                <input type="hidden" name="to" value="{{ request.user.id }}">
-                <p><strong>Send notification to:</strong> {{ request.user.username }}</p>
-                <ul class="user-checkboxes">
-                    {% for other_user in other_users %}
-                        <li>
-                            <label>
-                                <input type="checkbox" name="to" value="{{ other_user.id }}" class="user-checkbox">
-                                <span>{{ other_user.username }}</span>
-                            </label>
-                        </li>
+        <section class="comment-section">
+            <div class="comment-history">
+                <h2>Historical Comments</h2>
+                <ul class="comments-list">
+                    {% for comment in ticket.comments.all %}
+                        {% if 'Notification to' not in comment.body %}
+                            <li class="comment">
+                                <p><strong>{{ comment.created_at|date:'d/m/Y H:i' }} {{ comment.author.first_name }} {{ comment.author.last_name }}</strong>: {{ comment.body }}</p>
+                            </li>
+                        {% endif %}
+                    {% empty %}
+                        <li>No comments.</li>
                     {% endfor %}
                 </ul>
-                <button type="submit" class="btn waves-effect waves-light">Add Comment</button>
-            </form>
-        </div>
+            </div>
 
-    <a href="{% url 'home' %}">
-        <i class="material-icons">arrow_back</i> <!-- Ícone de voltar -->
-        Voltar para a página inicial
-    </a>
+            <div class="comment-form">
+                <h2>Add a comment</h2>
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form.comment }}
+                    <input type="hidden" name="to" value="{{ request.user.id }}">
+                    <p><strong>Send notification to:</strong> {{ request.user.username }}</p>
+                    <ul class="user-checkboxes">
+                        {% for other_user in other_users %}
+                            <li>
+                                <label>
+                                    <input type="checkbox" name="to" value="{{ other_user.id }}" class="user-checkbox">
+                                    <span>{{ other_user.username }}</span>
+                                </label>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <button type="submit" class="btn waves-effect waves-light">Add Comment</button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <a href="{% url 'home' %}">
+            <i class="material-icons">arrow_back</i> <!-- Ícone de voltar -->
+            Back to home
+        </a>
+    </footer>
 
     <!-- Importe o Materialize JavaScript (opcional) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
