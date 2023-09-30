@@ -3,37 +3,35 @@
 <html>
 <head>
     <title>Lista de Empresas - Helpdesk</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Poppins', Arial, sans-serif;
-            padding: 10px;
+            padding: 5px;
+            font-size: 12px;
             background-color: #f2f2f2;
         }
 
         h1 {
-            color: #007BFF; /* Cor azul para o título */
+            color: #007BFF; /* Cor corrigida para azul */
             margin-bottom: 20px;
-            text-align: center;
+            font-size: 24px; /* Tamanho corrigido para 24px */
+            padding: 5px;
+            border-bottom: 1px solid #ccc; /* Adicionada borda na parte inferior do h1 */
         }
 
-        ul {
-            list-style-type: none;
-            padding: 0;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
         }
 
-        li {
-            margin-bottom: 10px;
-        }
-
-        a {
-            color: #007BFF; /* Cor do link */
-            text-decoration: none;
-        }
-
-        a:hover {
-            text-decoration: underline;
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ccc;
         }
 
         .material-icons {
@@ -42,18 +40,138 @@
             margin-right: 5px;
         }
 
-        /* Botão secundário com estilo diferente */
-        .btn-secondary {
+        .notification-icon {
+            color: green; /* Alterada para verde */
+            font-size: 16px;
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+
+        /* Botão menor */
+        .btn-small {
+            font-size: 12px;
+            padding: 0 10px;
+            height: 24px;
+            line-height: 24px;
+        }
+
+        /* Estilos para seguir o Material Design */
+        a, button {
+            color: #007BFF; /* Cor do link e do botão */
+            cursor: pointer;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .btn {
             background-color: #007BFF; /* Cor de fundo do botão */
             color: #fff; /* Cor do texto do botão */
             border-radius: 4px; /* Borda arredondada do botão */
             transition: background-color 0.2s;
-            padding: 10px 20px; /* Espaçamento interno do botão */
-            margin-right: 10px; /* Espaçamento direita para separar os botões */
         }
 
-        .btn-secondary:hover {
-            background-color: #333; /* Cor de fundo do botão secundário ao passar o mouse */
+        .btn:hover {
+            background-color: #0056b3; /* Cor de fundo do botão ao passar o mouse */
+        }
+
+        .btn-small {
+            font-size: 12px; /* Tamanho da fonte do botão menor */
+            padding: 0 10px;
+            height: 24px;
+            line-height: 24px;
+        }
+
+        .btn-small:hover {
+            background-color: #0056b3; /* Cor de fundo do botão menor ao passar o mouse */
+        }
+
+        /* Estilos para os status */
+        .status-open {
+            color: green;
+            font-weight: bold;
+        }
+
+        .status-in-progress {
+            color: orange;
+            font-weight: bold;
+        }
+
+        .status-closed {
+            color: red;
+            font-weight: bold;
+        }
+
+        .status-new {
+            color: blue; /* Alterado para azul */
+            font-weight: bold;
+        }
+
+        .status-waiting-contact {
+            color: #FFC107; /* Alterado para amarelo escuro */
+            font-weight: bold;
+        }
+
+        .status-waiting-us {
+            color: #00BFFF; /* Alterado para azul claro */
+            font-weight: bold;
+        }
+
+        /* Novo estilo para o select de status (menor) */
+        .status-select-smaller {
+            width: 80px; /* Reduza o tamanho do width para ajustar o tamanho do select */
+            height: 20px;
+            font-size: 10px; /* Mantenha a fonte menor para o tamanho reduzido */
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 1px 5px;
+        }
+
+        /* Novo estilo para a coluna de status */
+        .status-column {
+            position: relative;
+        }
+
+        /* Posicionamento do select */
+        .status-select {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+        }
+
+        /* Exibe o select apenas quando estiver dentro da coluna de status */
+        .status-column:hover .status-select {
+            opacity: 1;
+        }
+
+        /* Estilo para a contagem de comentários */
+        .comments-count {
+            color: green;
+            font-weight: bold;
+            font-size: 14px;
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+
+        /* Estilo para a mensagem de aviso */
+        .status-warning {
+            color: red;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        /* Estilo para os filtros */
+        label {
+            margin-right: 5px;
+        }
+
+        select {
+            font-size: 12px;
         }
     </style>
 </head>
@@ -64,6 +182,12 @@
         <li>
             <a href="{% url 'company_detail' company.id %}">
                 {{ company.name }}
+            </a>
+            <a href="{% url 'company_edit' company.id %}" class="btn-small">
+                <i class="material-icons">edit</i> <!-- Ícone de editar -->
+            </a>
+            <a href="{% url 'company_delete' company.id %}" class="btn-small">
+                <i class="material-icons">delete</i> <!-- Ícone de excluir -->
             </a>
         </li>
         {% endfor %}

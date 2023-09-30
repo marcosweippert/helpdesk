@@ -63,7 +63,8 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('configuration', views.configuration_view, name='configuration'),
     path('companies/<int:company_id>/add_deliverable/', views.add_deliverable_view, name='add_deliverable'),
-
+    path('companies/edit/<int:company_id>/', views.company_edit, name='company_edit'),
+    path('companies/delete/<int:company_id>/', views.company_delete, name='company_delete'),
 
     path('delivery_calendars/', views.delivery_calendar_list, name='delivery_calendar_list'),
     path('delivery_calendars/create/', views.delivery_calendar_create, name='delivery_calendar_create'),
@@ -86,6 +87,12 @@ urlpatterns = [
     path('auth_cpf/', views.auth_cpf, name='auth_cpf'),
 
     path('create_bank/', views.create_bank, name='create_bank'),
+
+    path('changes_upload/', views.changes_upload, name='changes_upload'),
+
+    path('delete_changes/', views.delete_changes, name='delete_changes'),
+
+    path('upload_generate/', views.upload_generate, name='upload_generate'),
 
 
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

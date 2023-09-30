@@ -1,0 +1,97 @@
+<!-- templates/users/user_confirm_delete.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirmar Exclusão</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+      body {
+          font-family: 'Poppins', Arial, sans-serif;
+          padding: 10px;
+          background-color: #f2f2f2;
+      }
+
+      h1 {
+          color: #007BFF; /* Cor azul para o título */
+          margin-bottom: 20px;
+          text-align: center;
+      }
+
+      p {
+          margin-bottom: 10px;
+      }
+
+      a {
+          color: #007BFF; /* Cor do link */
+          text-decoration: none;
+      }
+
+      a:hover {
+          text-decoration: underline;
+      }
+
+      .material-icons {
+          font-size: 18px;
+          vertical-align: middle;
+          margin-right: 5px;
+      }
+
+      /* Botão secundário com estilo diferente */
+      .btn-secondary {
+          background-color: #007BFF; /* Cor de fundo do botão */
+          color: #fff; /* Cor do texto do botão */
+          border-radius: 4px; /* Borda arredondada do botão */
+          transition: background-color 0.2s;
+          padding: 10px 20px; /* Espaçamento interno do botão */
+          margin-right: 10px; /* Espaçamento direita para separar os botões */
+      }
+
+      .btn-secondary:hover {
+          background-color: #333; /* Cor de fundo do botão secundário ao passar o mouse */
+      }
+      
+      /* Estilos para a tabela */
+      table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-bottom: 20px;
+      }
+
+      th, td {
+          padding: 10px;
+          text-align: left;
+          border-bottom: 1px solid #ccc;
+      }
+
+      .material-icons {
+          font-size: 18px;
+          vertical-align: middle;
+          margin-right: 5px;
+      }
+
+      /* Estilos para o botão de adicionar */
+      .btn-add {
+          background-color: #4CAF50;
+          color: #fff;
+          border-radius: 4px;
+          padding: 10px 20px;
+      }
+
+      .btn-add:hover {
+          background-color: #45a049;
+      }
+  </style>
+</head>
+<body>
+  <h1>Confirmar Exclusão</h1>
+  <p>Deseja realmente excluir a empresa "{{ company.name }}"?</p>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit"><i class="material-icons">delete</i> Confirmar</button>
+  </form>
+</body>
+</html>

@@ -36,6 +36,10 @@ from django.utils.encoding import force_bytes
 from django.contrib.auth.models import User
 import re
 from datetime import *
+import pandas as pd
+import csv
+import math
+
 
     
 @login_required
@@ -611,9 +615,6 @@ def open_tickets_report_xlsx(request):
         response['Content-Disposition'] = 'attachment; filename=' + report_filename
         return response
 
-
-
-
 @csrf_exempt
 def change_ticket_status(request):
     if request.method == 'POST':
@@ -703,8 +704,6 @@ def company_create(request):
 
     return render(request, 'company/company_form.html', context)
 
-
-
 def company_detail(request, company_id):
     company = Company.objects.get(pk=company_id)
     deliverable = Deliverable.objects.all()
@@ -722,6 +721,37 @@ def company_detail(request, company_id):
     return render(request, 'company/company_detail.html', {'company': company, 'form': form, 'deliverables': deliverable})
 
 
+def company_edit(request, company_id):
+    # Obtém a empresa com base no ID ou retorna um erro 404 se não existir
+    company = get_object_or_404(Company, id=company_id)
+
+    if request.method == 'POST':
+        # Preenche o formulário com os dados da empresa atual
+        form = CompanyForm(request.POST, instance=company)
+        if form.is_valid():
+            # Salva as alterações no banco de dados
+            form.save()
+            return redirect('company_list')  # Redireciona de volta para a lista de empresas após a edição
+
+    else:
+        # Cria um novo formulário preenchido com os dados da empresa atual
+        form = CompanyForm(instance=company)
+
+    return render(request, 'company/company_edit.html', {'form': form, 'company': company})
+
+def company_delete(request, company_id):
+    # Obtém a empresa com base no ID ou retorna um erro 404 se não existir
+    company = get_object_or_404(Company, id=company_id)
+
+    if request.method == 'POST':
+        # Verifica se o formulário foi enviado por POST (confirmação de exclusão)
+        company.delete()  # Exclui a empresa do banco de dados
+        return redirect('company_list')  # Redireciona para a lista de empresas após a exclusão
+
+    # Se o formulário não foi enviado por POST, renderiza a página de confirmação de exclusão
+    return render(request, 'company/company_delete.html', {'company': company})
+
+
 def add_deliverable_view(request, company_id):
     company = Company.objects.get(pk=company_id)
 
@@ -736,7 +766,6 @@ def add_deliverable_view(request, company_id):
         form = DeliverableForm()
 
     return render(request, 'calendar/add_deliverable.html', {'form': form, 'company': company})
-
 
 def delivery_calendar_create(request):
     if request.method == 'POST':
@@ -767,16 +796,18 @@ def delivery_calendar_update(request, pk):
         form = DeliveryCalendarForm(instance=calendar)
     return render(request, 'calendar/delivery_calendar_form.html', {'form': form, 'calendar': calendar})
 
-def delivery_calendar_list(request):
-    calendars = DeliveryCalendar.objects.all()
-    return render(request, 'calendar/delivery_calendar_list.html', {'calendars': calendars})
-
 def delivery_calendar_delete(request, pk):
     calendar = get_object_or_404(DeliveryCalendar, pk=pk)
     if request.method == 'POST':
         calendar.delete()
         return redirect('delivery_calendar_list')
     return render(request, 'calendar/delivery_calendar_confirm_delete.html', {'calendar': calendar})
+
+def delivery_calendar_list(request):
+    calendars = DeliveryCalendar.objects.all()
+    return render(request, 'calendar/delivery_calendar_list.html', {'calendars': calendars})
+
+
 
 
 
@@ -1188,7 +1219,6 @@ def invoice_finance_approval(request):
     return render(request, 'nfes/invoice_finance_approval.html', context)
 
 
-
 def create_bank(request):
     if request.method == 'POST':
         form = BankForm(request.POST)
@@ -1199,3 +1229,293 @@ def create_bank(request):
         form = BankForm()
     
     return render(request, 'finance/create_bank.html', {'form': form})
+
+
+
+
+def changes_upload(request):
+    if request.method == 'POST':
+        form = ChangesUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            excel_file = request.FILES['excel_file']
+            company = form.cleaned_data['company'].id  # Obtém o ID da empresa selecionada
+            result_message = changes_data(excel_file, company)
+
+            return render(request, 'validation/changes_upload.html', {'form': form, 'result_message': result_message})
+    else:
+        form = ChangesUploadForm()
+    
+    return render(request, 'validation/changes_upload.html', {'form': form})
+
+def extract_date_from_pay_period(pay_period):
+    match = re.search(r'\d{4}-\d{2}-\d{2}', pay_period)
+    if match:
+        return match.group()
+    return None
+
+def convert_to_date(date_str):
+    try:
+        # Verifica se a string de data não é NaN (Not a Number)
+        if not pd.isna(date_str):
+            return datetime.strptime(str(date_str), '%Y-%m-%d').date()
+    except ValueError:
+        pass  # A string de data não pôde ser convertida
+
+    return None  # Retorna None para datas inválidas ou NaN
+
+def convert_to_decimal(decimal_str):
+    try:
+        # Verifica se a string de número não é NaN (Not a Number)
+        if not pd.isna(decimal_str):
+            return float(decimal_str)  # Converte a string em um número decimal
+    except ValueError:
+        pass  # A string de número não pôde ser convertida
+
+    return None  # Retorna None para valores inválidos ou NaN
+
+def changes_data(file_path, company_id):
+    try:
+        df = pd.read_excel(file_path)
+
+        # Nomes das colunas no arquivo Excel correspondentes aos nomes do modelo
+        column_mapping = {
+            'Payroll Name': 'Payroll Name',
+            'Employee Name': 'Employee Name',
+            'Employee ID Number': 'Employee ID Number',
+            'Pay Period': 'Pay Period',
+            'Payroll Pay Element': 'Payroll Pay Element',
+            'Transaction Type': 'Transaction Type',
+            'Element Type': 'Element Type',
+            'Effective Date': 'Effective Date',
+            'End Date': 'End Date',
+            'Amount': 'Amount',
+            'Number': 'Number',
+            'Unit Code': 'Unit Code',
+            'Unit': 'Unit',
+            'Rate': 'Rate',
+            'Payroll Effective Date': 'Payroll Effective Date',
+            'Termination Date': 'Termination Date',
+            'Comments': 'Comments',
+            'ICP EEPR ID': 'ICP EEPR ID',
+            'ICP Payroll PayElement': 'ICP Payroll PayElement',
+            'ICP Pay Element Code': 'ICP Pay Element Code',
+        }
+
+        # Renomeie as colunas do DataFrame para corresponder ao modelo
+        df.rename(columns=column_mapping, inplace=True)
+
+        required_columns = list(column_mapping.values())
+        missing_columns = [col for col in required_columns if col not in df.columns]
+
+        if missing_columns:
+            return f"Colunas ausentes: {', '.join(missing_columns)}"
+
+        # Obtém o objeto da empresa com base no ID
+        company = Company.objects.get(id=company_id)
+
+        for _, row in df.iterrows():
+            pay_period = extract_date_from_pay_period(row['Pay Period'])
+            effective_date = convert_to_date(row['Effective Date'])
+            end_date = convert_to_date(row['End Date'])
+            payroll_effective_date = convert_to_date(row['Payroll Effective Date'])
+            termination_date = convert_to_date(row['Termination Date'])
+            amount = convert_to_decimal(row['Amount'])
+            number = convert_to_decimal(row['Number'])
+            unit = convert_to_decimal(row['Unit'])
+            rate = convert_to_decimal(row['Rate'])
+            icp_eepr_id = row['ICP EEPR ID'] if not pd.isna(row['ICP EEPR ID']) else 0
+
+            ChangesValidation.objects.create(
+                Payroll_Name=row['Payroll Name'],
+                Employee_Name=row['Employee Name'],
+                Employee_ID_Number=row['Employee ID Number'],
+                Pay_Period=pay_period,
+                Payroll_Pay_Element=row['Payroll Pay Element'],
+                Transaction_Type=row['Transaction Type'],
+                Element_Type=row['Element Type'],
+                Effective_Date=effective_date,
+                End_Date=end_date,
+                Amount=amount,
+                Number=number,
+                Unit_Code=row['Unit Code'],
+                Unit=unit,
+                Rate=rate,
+                Payroll_Effective_Date=payroll_effective_date,
+                Termination_Date=termination_date,
+                Comments=row['Comments'],
+                ICP_EEPR_ID=icp_eepr_id,
+                ICP_Payroll_PayElement=row['ICP Payroll PayElement'],
+                ICP_Pay_Element_Code=row['ICP Pay Element Code'],
+                company=company
+            )
+
+        return f"Dados importados com sucesso! Registros importados: {len(df)} (Payroll Name: {', '.join(df['Payroll Name'].unique())}, Pay Period: {', '.join(df['Pay Period'].unique())})"
+
+    except Exception as e:
+        return f"Erro ao importar os dados: {str(e)}"
+
+def delete_changes(request):
+    message = None
+    companies = Company.objects.all()
+    payrolls = []
+    pay_periods = []
+
+    if request.method == 'POST':
+        company_id = request.POST.get('company')
+        payroll_name = request.POST.get('payroll_name')
+        pay_period = request.POST.get('pay_period')
+
+        # Exclua registros com base na empresa, Payroll Name e Pay Period
+        deleted_count = ChangesValidation.objects.filter(
+            company_id=company_id,
+            Payroll_Name=payroll_name,
+            Pay_Period=pay_period
+        ).delete()[0]
+
+        # Mensagem sobre os registros que foram apagados e a quantidade apagada
+        message = f"{deleted_count} registros foram apagados."
+
+        # Recarregue a lista de payrolls e pay_periods após a exclusão
+        payrolls = ChangesValidation.objects.filter(company_id=company_id).values_list('Payroll_Name', flat=True).distinct()
+        pay_periods = ChangesValidation.objects.filter(company_id=company_id).values_list('Pay_Period', flat=True).distinct()
+
+    return render(request, 'validation/delete_changes.html', {
+        'companies': companies,
+        'message': message,
+        'payrolls': payrolls,
+        'pay_periods': pay_periods,
+    })
+
+def upload_generate(request):
+    if request.method == 'POST':
+        company_id = request.POST.get('company')
+        pay_period = request.POST.get('pay_period')
+        generate_type = request.POST.get('generate_type')
+
+        if generate_type == 'single_variables':
+            return generate_single_variables(request, company_id, pay_period)
+        elif generate_type == 'single_overtime':
+            return generate_single_overtime(request, company_id, pay_period)
+        elif generate_type == 'recurring':
+            return generate_recurring(request, company_id, pay_period)
+
+    companies = Company.objects.all()
+    return render(request, 'validation/upload_generate.html', {'companies': companies})
+
+def generate_single_variables(request, company_id, pay_period):
+    if request.method == 'POST':
+        company = get_object_or_404(Company, id=company_id)
+        company_abbr = company.abreviation
+
+        single_variables_records = ChangesValidation.objects.filter(
+            company_id=company_id,
+            Pay_Period=pay_period,
+            Element_Type='Single',
+            Amount__isnull=False
+        ).values('ICP_EEPR_ID', 'Amount', 'ICP_Payroll_PayElement', 'Employee_ID_Number')
+
+        filename = f"{company_abbr}_Bulk_Single_{pay_period}.csv"
+
+        # Criar a resposta HTTP para o download da planilha CSV
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+        # Criar o escritor CSV
+        writer = csv.writer(response, delimiter=';')
+
+        # Escrever o cabeçalho
+        writer.writerow(['ICP EEPR ID', 'ICP Payroll PayElement', 'Amount'])
+
+        for record in single_variables_records:
+            # Verificar se ICP_EEPR_ID está vazio ou igual a 0 e, em seguida, use Employee_ID_Number
+            icp_eepr_id = record['ICP_EEPR_ID'] if record['ICP_EEPR_ID'] is not None and record['ICP_EEPR_ID'] != 0 else record['Employee_ID_Number']
+
+            # Converter Amount substituindo . por , se não for None
+            amount = str(record['Amount']).replace('.', ',') if record['Amount'] is not None else ''
+
+            writer.writerow([icp_eepr_id, record['ICP_Payroll_PayElement'], amount])
+
+        return response
+
+    companies = Company.objects.all()
+    return render(request, 'validation/upload_generate.html', {'companies': companies})
+
+def generate_single_overtime(request, company_id, pay_period):
+    if request.method == 'POST':
+        company = get_object_or_404(Company, id=company_id)
+        company_abbr = company.abreviation
+
+        single_overtime_records = ChangesValidation.objects.filter(
+            company_id=company_id,
+            Pay_Period=pay_period,
+            Element_Type='Single',
+            Number__isnull=False
+        ).values('ICP_EEPR_ID', 'Number', 'ICP_Payroll_PayElement', 'Employee_ID_Number')
+
+        filename = f"{company_abbr}_Bulk_Single_Overtime_{pay_period}.csv"
+
+        # Criar a resposta HTTP para o download da planilha CSV
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+        writer = csv.writer(response, delimiter=';')
+        writer.writerow(['ICP EEPR ID', 'ICP Payroll PayElement', 'Number'])
+
+        for record in single_overtime_records:
+            icp_eepr_id = record['ICP_EEPR_ID'] if record['ICP_EEPR_ID'] is not None and record['ICP_EEPR_ID'] != 0 else record['Employee_ID_Number']
+            
+            number = str(record['Number']).replace('.', ',') if record['Number'] is not None else ''
+            
+            writer.writerow([icp_eepr_id, record['ICP_Payroll_PayElement'], number])
+
+        return response
+
+    companies = Company.objects.all()
+    return render(request, 'validation/upload_generate.html', {'companies': companies})
+
+def generate_recurring(request, company_id, pay_period):
+    if request.method == 'POST':
+        company = get_object_or_404(Company, id=company_id)
+        company_abbr = company.abreviation
+
+        recurring_records = ChangesValidation.objects.filter(
+            company_id=company_id,
+            Pay_Period=pay_period,
+            Element_Type='Recurring',
+            Amount__isnull=False
+        ).values('ICP_EEPR_ID', 'Amount', 'ICP_Payroll_PayElement', 'Employee_ID_Number')
+
+        filename = f"{company_abbr}_Bulk_Recurring_{pay_period}.csv"
+
+        # Criar a resposta HTTP para o download da planilha CSV
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+        # Criar o escritor CSV
+        writer = csv.writer(response, delimiter=';')
+
+        # Escrever o cabeçalho
+        writer.writerow(['ICP EEPR ID', 'ICP Payroll PayElement', 'Amount'])
+
+        for record in recurring_records:
+            # Verificar se ICP_EEPR_ID está vazio ou igual a 0 e, em seguida, use Employee_ID_Number
+            icp_eepr_id = record['ICP_EEPR_ID'] if record['ICP_EEPR_ID'] is not None and record['ICP_EEPR_ID'] != 0 else record['Employee_ID_Number']
+
+            # Converter Amount substituindo . por , se não for None
+            amount = str(record['Amount']).replace('.', ',') if record['Amount'] is not None else ''
+
+            writer.writerow([icp_eepr_id, record['ICP_Payroll_PayElement'], amount])
+
+        return response
+
+    companies = Company.objects.all()
+    return render(request, 'validation/upload_generate.html', {'companies': companies})
+
+def write_csv(response, header, data):
+    writer = csv.writer(response, delimiter=';')
+    writer.writerow(header)
+    for row in data:
+        writer.writerow(row)
+
+
+

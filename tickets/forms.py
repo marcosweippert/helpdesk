@@ -65,9 +65,6 @@ class ManualInvoiceForm(forms.ModelForm):
         model = Invoice
         fields = '__all__'
 
-from django import forms
-
-
 
 class CustomPasswordResetForm(PasswordResetForm):
     email = forms.EmailField(
@@ -92,3 +89,12 @@ class BankForm(forms.ModelForm):
     class Meta:
         model = Bank
         fields = ['name', 'code']
+
+
+
+class ChangesUploadForm(forms.Form):
+    excel_file = forms.FileField(
+        label='Selecione o arquivo Excel',
+        widget=forms.ClearableFileInput(attrs={'accept': '.xlsx, .xls'})
+    )
+    company = forms.ModelChoiceField(queryset=Company.objects.all(), label='Selecione a Empresa')

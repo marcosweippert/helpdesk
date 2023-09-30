@@ -99,6 +99,7 @@
                 <th>Delivery Format</th>
                 <th>Delivery Date</th>
                 <th>Frequency</th>
+                <th>Ações</th> <!-- Coluna para ações (Editar e Excluir) -->
             </tr>
         </thead>
         <tbody>
@@ -109,6 +110,13 @@
                 <td>{{ deliverable.delivery_format }}</td>
                 <td>{{ deliverable.get_delivery_date_display }}</td>
                 <td>{{ deliverable.get_frequency_display }}</td>
+                <td>
+                    <!-- Botão Editar -->
+                    <a href="{% url 'edit_deliverable' deliverable.id %}" class="btn-secondary"><span class="material-icons">edit</span>Editar</a>
+    
+                    <!-- Botão Excluir (com confirmação) -->
+                    <a href="{% url 'delete_deliverable' deliverable.id %}" class="btn-secondary" onclick="return confirm('Tem certeza que deseja excluir este Deliverable?');"><span class="material-icons">delete</span>Excluir</a>
+                </td>
             </tr>
             {% endfor %}
         </tbody>

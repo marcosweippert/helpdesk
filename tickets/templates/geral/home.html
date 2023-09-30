@@ -169,6 +169,22 @@
                     </div>
                 </div>
             </li>
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePayroll"
+                    aria-expanded="true" aria-controls="collapsepayroll">
+                    <i class="fa fa-file"></i>
+                    <span>Payroll</span>
+                </a>
+                <div id="collapsePayroll" class="collapse" aria-labelledby="headingPayroll"
+                    data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Custom Payroll:</h6>
+                        <a class="collapse-item" href="{% url 'changes_upload' %}">Changes Upload</a>
+                        <a class="collapse-item" href="{% url 'delete_changes' %}">Delete Changes</a>
+                        <a class="collapse-item" href="{% url 'upload_generate' %}">Chages Generate</a>
+                    </div>
+                </div>
+            </li>
             <!-- Divider -->
             <hr class="sidebar-divider">
 
