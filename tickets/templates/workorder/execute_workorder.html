@@ -180,7 +180,7 @@
             {% if workorder.status == 'In Progress' %}
             <tr>
                 <td>{{ workorder.company }}</td>
-                <td>{{ workorder.assigned_to }}</td>
+                <td>{{ workorder.created_by }}</td>
                 <td>{{ workorder.department }}</td>
                 <td>{{ workorder.type }}</td>
                 <td>{{ workorder.hours }}</td>

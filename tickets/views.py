@@ -2,12 +2,13 @@ from django.shortcuts import *
 from .models import *
 from .forms import *
 from django.contrib.auth.decorators import *
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import *
 from datetime import *
 from django.utils import timezone
 from django.utils.timezone import *
 from django.contrib import messages
 from django.http import *
+from django.utils.http import urlsafe_base64_encode
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.views.decorators.csrf import csrf_exempt
@@ -26,19 +27,14 @@ from django.db.models import *
 import datetime
 import xml.etree.ElementTree as ET
 from decimal import Decimal
-from django.contrib.auth import views as auth_views
-from django.contrib.auth.forms import SetPasswordForm
-from django.contrib.auth import login as auth_login
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.models import User
 import re
 from datetime import *
 import pandas as pd
 import csv
-import math
 
 
     
@@ -100,7 +96,7 @@ def login_view(request):
         
         if user is not None:
             login(request, user)
-            return redirect('home')  # Altere 'home' para o nome da URL da sua página inicial
+            return redirect('home')
         else:
             messages.error(request, 'Email ou senha inválidos.')
     
@@ -144,9 +140,6 @@ def user_create(request):
         'form': form,
     }
     return render(request, 'user/user_form.html', context)
-
-
-
 
 def auth_cpf(request):
     if request.method == 'POST':
@@ -243,14 +236,29 @@ def driver_registration(request):
 
 def user_edit(request, pk):
     user = get_object_or_404(CustomUser, pk=pk)
+    
     if request.method == 'POST':
         form = UserForm(request.POST, instance=user)
+        
+        # Verifique se a senha está vazia
+        if 'password' in request.POST and not request.POST['password']:
+            form.fields['password'].required = False  # Torna a senha opcional
+            form.fields['password'].widget.attrs['disabled'] = True  # Desativa o campo senha
+
         if form.is_valid():
+            # Salve apenas se a senha não estiver vazia
+            if 'password' in request.POST and not request.POST['password']:
+                user.password = form.instance.password
+            else:
+                user.set_password(form.cleaned_data['password'])
+
             form.save()
             return redirect('user_list')
     else:
         form = UserForm(instance=user)
-    return render(request, 'user/user_form.html', {'form': form})
+
+    return render(request, 'user/user_edit.html', {'form': form})
+
 
 def user_delete(request, pk):
     user = get_object_or_404(CustomUser, pk=pk)
@@ -265,6 +273,8 @@ def password_reset_done(request):
 
 def password_reset_complete(request):
     return render(request, 'registration/password_reset_complete.html')
+
+
 
 def reset_password(request):
     if request.method == "POST":
@@ -807,10 +817,6 @@ def delivery_calendar_list(request):
     calendars = DeliveryCalendar.objects.all()
     return render(request, 'calendar/delivery_calendar_list.html', {'calendars': calendars})
 
-
-
-
-
 @login_required
 def create_work_order(request):
     if request.method == 'POST':
@@ -818,6 +824,10 @@ def create_work_order(request):
         if form.is_valid():
             work_order = form.save(commit=False)
             work_order.created_by = request.user
+
+            if work_order.type == 'RSA billing':
+                work_order.billing = 'No'
+
             work_order.save()
             return redirect('analyze_work_order')
         else:
@@ -837,28 +847,43 @@ def create_work_order(request):
     return render(request, 'workorder/create_workorder.html', context)
 
 @login_required
+def details_workorder(request, workorder_id):
+    workorder = get_object_or_404(Workorder, id=workorder_id)
+
+    context = {
+        'workorder': workorder,
+        'status_choices': Workorder.STATUS_CHOICES,
+    }
+
+    return render(request, 'workorder/details_workorder.html', context)
+
+@login_required
 def analyze_work_order(request):
     if request.method == 'POST':
         workorder_id = request.POST.get('workorder_id')
         cam_approval = request.POST.get('cam_approval')
         billing = request.POST.get('billing')
         workorder = Workorder.objects.get(id=workorder_id)
-        
-        if cam_approval == 'Approve':
-            workorder.status = 'In Progress'
-            workorder.cam_approval = 'Approved'
-            workorder.billing = billing
-            workorder.approve_date = now()  # Define a data de aprovação
-            workorder.save()
-            return redirect('execute_work_order')
-        elif cam_approval == 'Reprove':
-            workorder.status = 'Rework'
-            workorder.cam_approval = 'Reproved'
-            workorder.assigned_to = workorder.created_by
-            workorder.billing = billing
-            workorder.approve_date = None  # Define a data de aprovação como nula ao reprovar
-            workorder.save()
-            return redirect('rework_work_order')
+
+
+        if request.user.is_cam:
+            if cam_approval == 'Approve':
+                workorder.status = 'In Progress'
+                workorder.cam_approval = 'Approved'
+                workorder.billing = billing
+                workorder.approve_date = now()
+                workorder.save()
+                return redirect('execute_work_order')
+            elif cam_approval == 'Reprove':
+                workorder.status = 'Rework'
+                workorder.cam_approval = 'Reproved'
+                workorder.assigned_to = workorder.created_by
+                workorder.billing = billing
+                workorder.approve_date = None
+                workorder.save()
+                return redirect('rework_work_order')
+        else:
+            return redirect('home')
 
     workorders = Workorder.objects.filter(status='New')
 
@@ -868,6 +893,7 @@ def analyze_work_order(request):
     }
 
     return render(request, 'workorder/analyze_workorder.html', context)
+
 
 @login_required
 def execute_work_order(request):
@@ -888,40 +914,16 @@ def execute_work_order(request):
 
     return render(request, 'workorder/execute_workorder.html', context)
 
-#nessa função é para criar um ticket automaticamente quando a WO for aprovada pelo CAM e vai para Execute
-@receiver(post_save, sender=Workorder)
-def create_tickets(sender, instance, created, **kwargs):
-    if created and instance.cam_approval == 'Approved':
-    
-        # Mapeamento das atividades para os títulos
-        activity_titles = {
-            'execute': f'WO - Execute #{instance.id}',
-        }
-        cam = instance.created_by
-        analyst = instance.assigned_to
-        ticket_sla_date = instance.sla_date
-        
-        for activity, title in activity_titles.items():
-            Ticket.objects.create(
-                title=title,
-                description=f'Hi, this is an automatic ticket to execute WO approved.',
-                priority='Medium',
-                assigned_to=analyst,
-                created_by=cam,
-                company=instance.company,
-                department='Operation',
-                type=activity,
-                sla_date=getattr(instance, f'{activity}_date', ticket_sla_date),
-            )
+
 
 @login_required
 def rework_work_order(request):
     if request.method == 'POST':
         workorder_id = request.POST.get('workorder_id')
         workorder = Workorder.objects.get(id=workorder_id)
-        workorder.status = 'New'  # Altera o status para "New"
+        workorder.status = 'New'
         workorder.cam_approval = 'Reproved'
-        workorder.assigned_to = workorder.created_by  # Return to the analyst who created the work order
+        workorder.assigned_to = request.user
         workorder.save()
         messages.success(request, 'Work Order has been sent for rework.')
         return redirect('analyze_work_order')
@@ -934,6 +936,7 @@ def rework_work_order(request):
     }
 
     return render(request, 'workorder/rework_workorder.html', context)
+
 
 @login_required
 def work_order_dashboard(request):
@@ -966,29 +969,73 @@ def edit_work_order(request, workorder_id):
 
 @login_required
 def report_workorder(request):
-    analysts = CustomUser.objects.filter(assigned_workorder__isnull=False).distinct()
+    # Obtenha todos os analistas
+    analysts = CustomUser.objects.filter(is_analyst=True).distinct()
+
+    # Inicialize uma lista para armazenar os dados dos analistas com horas faturadas
+    analyst_data = []
+
+    # Obtenha os meses distintos das Work Orders
     months = Workorder.objects.annotate(month=ExtractMonth('created_at')).values('month').distinct()
-    
-    data = []
+
     for analyst in analysts:
-        analyst_data = {'analyst': analyst, 'months': []}
+        # Filtrar as Work Orders do analista para cada mês
+        analyst_workorders = Workorder.objects.filter(created_by=analyst, status='Executed')
+        
+        analyst_month_data = {'analyst': analyst, 'months': []}
+        
         for month in months:
-            workorders = Workorder.objects.filter(assigned_to=analyst, created_at__month=month['month'], status='Executed')
-            total_hours = workorders.aggregate(Sum('hours'))['hours__sum']
-            billing_count = workorders.filter(billing='Yes').count()
-            analyst_data['months'].append({
-                'month': month['month'],
-                'total_hours': total_hours or 0,
-                'billing_count': billing_count,
-            })
-        data.append(analyst_data)
-    
+            # Filtrar as Work Orders do analista para o mês atual
+            month_workorders = analyst_workorders.filter(created_at__month=month['month'])
+            
+            total_hours = month_workorders.aggregate(Sum('hours'))['hours__sum']
+            billing_count = month_workorders.filter(billing='Yes').count()
+            
+            # Verificar se o analista teve horas faturadas para este mês
+            if billing_count > 0:
+                analyst_month_data['months'].append({
+                    'month': month['month'],
+                    'total_hours': total_hours or 0,
+                    'billing_count': billing_count,
+                    'billed': True,
+                })
+
+        # Se o analista teve horas faturadas em algum mês, adicione-o à lista
+        if analyst_month_data['months']:
+            analyst_data.append(analyst_month_data)
+
     context = {
-        'analyst_data': data,
+        'analyst_data': analyst_data,
     }
     return render(request, 'workorder/report_workorder.html', context)
 
 
+
+#nessa função é para criar um ticket automaticamente quando a WO for aprovada pelo CAM e vai para Execute
+@receiver(post_save, sender=Workorder)
+def create_tickets(sender, instance, created, **kwargs):
+    if created and instance.cam_approval == 'Approved':
+    
+        # Mapeamento das atividades para os títulos
+        activity_titles = {
+            'execute': f'WO - Execute #{instance.id}',
+        }
+        cam = instance.created_by
+        analyst = instance.assigned_to
+        ticket_sla_date = instance.sla_date
+        
+        for activity, title in activity_titles.items():
+            Ticket.objects.create(
+                title=title,
+                description=f'Hi, this is an automatic ticket to execute WO approved.',
+                priority='Medium',
+                assigned_to=analyst,
+                created_by=cam,
+                company=instance.company,
+                department='Operation',
+                type=activity,
+                sla_date=getattr(instance, f'{activity}_date', ticket_sla_date),
+            )
 
 
 # Função para validar arquivo XML de NFe

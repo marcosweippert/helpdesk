@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Cadastro de Empresa</title>
+    <title>Company Registration</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
     
@@ -14,7 +14,7 @@
         }
 
         h1 {
-            color: #007BFF; /* Cor azul para o título */
+            color: #007BFF; /* Blue color for the title */
             margin-bottom: 20px;
             text-align: center;
         }
@@ -41,13 +41,13 @@
         }
 
         input[type="submit"] {
-            background-color: #007BFF; /* Cor azul para o botão */
-            color: #fff; /* Cor do texto do botão */
+            background-color: #007BFF; /* Blue color for the button */
+            color: #fff; /* Button text color */
             cursor: pointer;
         }
 
         input[type="submit"]:hover {
-            background-color: #0056b3; /* Cor mais escura do azul ao passar o mouse */
+            background-color: #0056b3; /* Darker blue color on hover */
         }
 
         .material-icons {
@@ -56,7 +56,7 @@
             margin-right: 5px;
         }
 
-        /* Botão menor */
+        /* Small button */
         .btn-small {
             font-size: 12px;
             padding: 0 10px;
@@ -64,9 +64,9 @@
             line-height: 24px;
         }
 
-        /* Estilos para seguir o Material Design */
+        /* Styles to follow Material Design */
         a, button {
-            color: #007BFF; /* Cor do link e do botão */
+            color: #007BFF; /* Link and button color */
             cursor: pointer;
         }
 
@@ -76,61 +76,61 @@
 
 
         .btn {
-            background-color: #007BFF; /* Cor de fundo do botão */
-            color: #fff; /* Cor do texto do botão */
-            border-radius: 4px; /* Borda arredondada do botão */
+            background-color: #007BFF; /* Button background color */
+            color: #fff; /* Button text color */
+            border-radius: 4px; /* Button border radius */
             transition: background-color 0.2s;
-            padding: 10px 20px; /* Espaçamento interno do botão */
-            margin-right: 10px; /* Espaçamento direita para separar os botões */
+            padding: 10px 20px; /* Button padding */
+            margin-right: 10px; /* Margin to separate buttons */
         }
 
         .btn:hover {
-            background-color: #0056b3; /* Cor de fundo do botão ao passar o mouse */
+            background-color: #0056b3; /* Button background color on hover */
         }
 
-        /* Botão menor */
+        /* Small button */
         .btn-small {
-            font-size: 12px;
+            font-size: 12px; /* Font size of the smaller button */
             padding: 0 10px;
             height: 24px;
             line-height: 24px;
         }
 
-        /* Botão secundário com estilo diferente */
+        /* Secondary button with different style */
         .btn-secondary {
-            background-color: #007BFF; /* Cor de fundo do botão */
-            color: #fff; /* Cor do texto do botão */
-            border-radius: 4px; /* Borda arredondada do botão */
+            background-color: #007BFF; /* Button background color */
+            color: #fff; /* Button text color */
+            border-radius: 4px; /* Button border radius */
             transition: background-color 0.2s;
-            padding: 10px 20px; /* Espaçamento interno do botão */
-            margin-right: 10px; /* Espaçamento direita para separar os botões */
+            padding: 10px 20px; /* Button padding */
+            margin-right: 10px; /* Margin to separate buttons */
         }
 
         .btn-secondary:hover {
-            background-color: #333; /* Cor de fundo do botão secundário ao passar o mouse */
+            background-color: #333; /* Secondary button background color on hover */
         }
     </style>
 </head>
 <body>
-    <h1><span class="material-icons">business</span> Cadastro de Empresa</h1>
+    <h1><span class="material-icons">business</span> Company Registration</h1>
     <form method="post">
         {% csrf_token %}
-        <label for="name">Nome da Empresa:</label>
+        <label for="name">Company Name:</label>
         <input type="text" name="name" id="name" required>
-        <label for="abreviation">Abreviação:</label>
+        <label for="abreviation">Abbreviation:</label>
         <input type="text" name="abreviation" id="abreviation" required>
-        <label for="partner">Parceiro:</label>
+        <label for="partner">Partner:</label>
         <input type="text" name="partner" id="partner" required>
-        <label for="address">Endereço:</label>
+        <label for="address">Address:</label>
         <input type="text" name="address" id="address">
-        <label for="phone">Telefone:</label>
+        <label for="phone">Phone:</label>
         <input type="text" name="phone" id="phone" required>
         <label for="cnpj">CNPJ:</label>
         <input type="text" name="cnpj" id="cnpj" required>
-        <!-- Adicione os campos CAM, CAM Backup, Analyst e Analyst Backup -->
+        <!-- Add CAM, CAM Backup, Analyst, and Analyst Backup fields -->
         <label for="cam">CAM:</label>
         <select name="cam" id="cam">
-            <option value="" selected>Selecione um CAM</option>
+            <option value="" selected>Select CAM</option>
             {% for user in cam_users %}
                 <option value="{{ user.pk }}">{{ user.first_name }} {{ user.last_name }}</option>
             {% endfor %}
@@ -138,7 +138,7 @@
         
         <label for="cam_backup">CAM Backup:</label>
         <select name="cam_backup" id="cam_backup">
-            <option value="" selected>Selecione um CAM Backup</option>
+            <option value="" selected>Select CAM Backup</option>
             {% for user in cam_users %}
                 <option value="{{ user.pk }}">{{ user.first_name }} {{ user.last_name }}</option>
             {% endfor %}
@@ -146,7 +146,7 @@
         
         <label for="analyst">Analyst:</label>
         <select name="analyst" id="analyst">
-            <option value="" selected>Selecione um Analyst</option>
+            <option value="" selected>Select Analyst</option>
             {% for user in analyst_users %}
                 <option value="{{ user.pk }}">{{ user.first_name }} {{ user.last_name }}</option>
             {% endfor %}
@@ -154,17 +154,17 @@
         
         <label for="analyst_backup">Analyst Backup:</label>
         <select name="analyst_backup" id="analyst_backup">
-            <option value="" selected>Selecione um Analyst Backup</option>
+            <option value="" selected>Select Analyst Backup</option>
             {% for user in analyst_users %}
                 <option value="{{ user.pk }}">{{ user.first_name }} {{ user.last_name }}</option>
             {% endfor %}
         </select>
-        <input type="submit" value="Salvar">
+        <input type="submit" value="Save">
     </form>
     
     <a href="{% url 'home' %}">
-        <i class="material-icons">arrow_back</i> <!-- Ícone de voltar -->
-        Voltar para a página inicial
+        <i class="material-icons">arrow_back</i> <!-- Back arrow icon -->
+        Back to Home
     </a>
 </body>
 </html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work Order Details</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', Arial, sans-serif;
+            padding: 5px;
+            font-size: 12px;
+            background-color: #f2f2f2;
+        }
+
+        h1 {
+            color: #007BFF;
+            margin-bottom: 20px;
+            font-size: 24px;
+            padding: 5px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .material-icons {
+            font-size: 18px;
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+
+        /* Estilos para o botão "Back" */
+        .btn {
+            background-color: #007BFF;
+            color: #fff;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+            text-decoration: none;
+            padding: 8px 12px;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Work Order Details</h1>
+    
+    <table>
+        <tr>
+            <th>Company</th>
+            <td>{{ workorder.company }}</td>
+        </tr>
+        <tr>
+            <th>Department</th>
+            <td>{{ workorder.get_department_display }}</td>
+        </tr>
+        <tr>
+            <th>Type</th>
+            <td>{{ workorder.type }}</td>
+        </tr>
+        <tr>
+            <th>Status</th>
+            <td>{{ workorder.get_status_display }}</td>
+        </tr>
+        <tr>
+            <th>Analyst</th>
+            <td>{{ workorder.created_by.first_name }} {{ workorder.created_by.last_name }}</td>
+        </tr>
+        <tr>
+            <th>CAM Approval</th>
+            <td>{{ workorder.cam_approval }}</td>
+        </tr>
+        <tr>
+            <th>CAM</th>
+            <td>{{ workorder.assigned_to.first_name }} {{ workorder.assigned_to.last_name }}</td>
+        </tr>
+        <tr>
+            <th>Description</th>
+            <td>{{ workorder.description }}</td>
+        </tr>
+        <tr>
+            <th>Hours</th>
+            <td>{{ workorder.hours }}</td>
+        </tr>
+        <tr>
+            <th>Billing</th>
+            <td>{{ workorder.billing }}</td>
+        </tr>
+        <tr>
+            <th>Approve Date</th>
+            <td>{{ workorder.approve_date|date:'d/m/Y' }}</td>
+        </tr>
+        <tr>
+            <th>Complete Date</th>
+            <td>{{ workorder.complete_date|date:'d/m/Y' }}</td>
+        </tr>
+        <!-- Adicione outros campos do modelo aqui conforme necessário -->
+    </table>
+
+    <a href="{% url 'work_order_dashboard' %}" class="btn">
+        <span class="material-icons">arrow_back</span> Back to Dashboard
+    </a>
+</body>
+</html>

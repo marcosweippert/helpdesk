@@ -12,7 +12,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import Permission
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
-from django.utils import timezone
+from django.utils import *
 
 class Bank(models.Model):
     name = models.CharField(max_length=100)
@@ -24,7 +24,6 @@ class Bank(models.Model):
     def __str__(self):
         return self.name
     
-
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
@@ -84,6 +83,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=25, unique=True)
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30, blank=True, null=True)
+    middle_name = models.CharField(max_length=30, blank=True, null=True)
     company = models.ForeignKey('Company', on_delete=models.CASCADE, blank=True, null=True)
 
     is_staff = models.BooleanField(default=False)
@@ -402,8 +402,6 @@ class Workorder(models.Model):
 
     def __str__(self):
         return f"Workorder for {self.company.name}"
-
-
 
 class AuthCpf(models.Model):
     cpf = models.CharField(max_length=14, unique=True, null=True, blank=True)

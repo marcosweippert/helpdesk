@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Work Order Report - Helpdesk</title>
+    <title>Work Order Report</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
@@ -13,12 +13,12 @@
         }
 
         h1 {
-            color: #007BFF; /* Cor corrigida para azul */
+            color: #007BFF;
             margin-bottom: 20px;
-            font-size: 24px; /* Tamanho corrigido para 24px */
-            padding: 5px;
-            border-bottom: 1px solid #ccc; /* Adicionada borda na parte inferior do h1 */
+            font-size: 24px;
+            border-bottom: none;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -31,104 +31,14 @@
             border-bottom: 1px solid #ccc;
         }
 
-        .material-icons {
-            font-size: 18px;
-            vertical-align: middle;
-            margin-right: 5px;
-        }
-        .notification-icon {
-            color: green; /* Alterada para verde */
-            font-size: 16px;
-            vertical-align: middle;
-            margin-right: 5px;
+        .report-table {
+            table-layout: fixed;
         }
 
-        /* Botão menor */
-        .btn-small {
-            font-size: 12px;
-            padding: 0 10px;
-            height: 24px;
-            line-height: 24px;
-        }
-
-        /* Estilos para seguir o Material Design */
-        a, button {
-            color: #007BFF; /* Cor do link e do botão */
-            cursor: pointer;
-        }
-
-        a:hover {
-            text-decoration: underline;
-        }
-
-        .btn {
-            background-color: #007BFF; /* Cor de fundo do botão */
-            color: #fff; /* Cor do texto do botão */
-            border-radius: 4px; /* Borda arredondada do botão */
-            transition: background-color 0.2s;
-        }
-
-        .btn:hover {
-            background-color: #0056b3; /* Cor de fundo do botão ao passar o mouse */
-        }
-
-        .btn-small {
-            font-size: 12px; /* Tamanho da fonte do botão menor */
-            padding: 0 10px;
-            height: 24px;
-            line-height: 24px;
-        }
-
-        .btn-small:hover {
-            background-color: #0056b3; /* Cor de fundo do botão menor ao passar o mouse */
-        }
-
-        /* Estilos para os status */
-        .status-open {
-            color: green;
-            font-weight: bold;
-        }
-
-        .status-in-progress {
-            color: orange;
-            font-weight: bold;
-        }
-
-        .status-closed {
-            color: red;
-            font-weight: bold;
-        }
-
-        .status-new {
-            color: blue; /* Alterado para azul */
-            font-weight: bold;
-        }
-
-        .status-waiting-contact {
-            color: #FFC107; /* Alterado para amarelo escuro */
-            font-weight: bold;
-        }
-
-        .status-waiting-us {
-            color: #00BFFF; /* Alterado para azul claro */
-            font-weight: bold;
-        }
-
-        /* Novo estilo para o select de status (menor) */
-        .status-select-smaller {
-            width: 80px; /* Reduza o tamanho do width para ajustar o tamanho do select */
-            height: 20px;
-            font-size: 10px; /* Mantenha a fonte menor para o tamanho reduzido */
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            padding: 1px 5px;
-        }
-        /* Novo estilo para a coluna de status */
         .status-column {
             position: relative;
         }
 
-        /* Posicionamento do select */
         .status-select {
             position: absolute;
             top: 0;
@@ -139,12 +49,15 @@
             opacity: 0;
         }
 
-        /* Exibe o select apenas quando estiver dentro da coluna de status */
-        .status-column:hover .status-select {
-            opacity: 1;
+        .status-select-smaller {
+            width: 80px;
+            height: 20px;
+            font-size: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 1px 5px;
         }
 
-        /* Estilo para a contagem de comentários */
         .comments-count {
             color: green;
             font-weight: bold;
@@ -152,7 +65,7 @@
             vertical-align: middle;
             margin-right: 5px;
         }
-        /* Estilo para a mensagem de aviso */
+
         .status-warning {
             color: red;
             font-size: 12px;
@@ -162,7 +75,7 @@
 </head>
 <body>
     <h1>Work Order Report</h1>
-    <table class="report-table">
+    <table class="report-table table-striped">
         <thead>
             <tr>
                 <th>Analyst</th>
@@ -175,15 +88,12 @@
             {% for analyst in analyst_data %}
             {% for month in analyst.months %}
             <tr>
-                <td>{{ analyst.analyst }}</td>
+                <td>{{ analyst.analyst.first_name }} {{ analyst.analyst.last_name }}</td>
                 <td>{{ month.month }}</td>
-                <td>{{ month.total_hours }}</td>
+                <td>{{ month.total_hours }} horas</td>
                 <td>{{ month.billing_count }}</td>
             </tr>
             {% endfor %}
             {% endfor %}
         </tbody>
-    </table>
-    <a href="{% url 'home' %}" class="btn-secondary"><span class="material-icons">arrow_back</span>home</a>
-</body>
-</html>
+    </table

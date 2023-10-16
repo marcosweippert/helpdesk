@@ -64,7 +64,7 @@ urlpatterns = [
     path('configuration', views.configuration_view, name='configuration'),
     path('companies/<int:company_id>/add_deliverable/', views.add_deliverable_view, name='add_deliverable'),
     path('companies/edit/<int:company_id>/', views.company_edit, name='company_edit'),
-    path('companies/delete/<int:company_id>/', views.company_delete, name='company_delete'),
+    path('company/<int:company_id>/delete/', views.company_delete, name='company_delete'),
 
     path('delivery_calendars/', views.delivery_calendar_list, name='delivery_calendar_list'),
     path('delivery_calendars/create/', views.delivery_calendar_create, name='delivery_calendar_create'),
@@ -79,6 +79,7 @@ urlpatterns = [
     path('work_order_dashboard/', views.work_order_dashboard, name='work_order_dashboard'),
     path('edit_work_order/<int:workorder_id>/', views.edit_work_order, name='edit_work_order'),
     path('report_workorder/', views.report_workorder, name='report_work_order'),
+    path('workorder/<int:workorder_id>/', views.details_workorder, name='details_workorder'),
 
     path('driver_register/', views.driver_registration, name='driver_registration'),
 

@@ -168,6 +168,7 @@
     <table>
         <thead>
             <tr>
+                <th>Details</th>
                 <th>Company</th>
                 <th>Department</th>
                 <th>Type</th>
@@ -184,13 +185,18 @@
         <tbody>
             {% for workorder in workorders %}
             <tr>
+                <td>
+                    <a href="{% url 'details_workorder' workorder.id %}" class="btn-small">
+                        <span class="material-icons">info</span> Details
+                    </a>
+                </td>
                 <td>{{ workorder.company }}</td>
                 <td>{{ workorder.get_department_display }}</td>
                 <td>{{ workorder.type }}</td>
                 <td>{{ workorder.get_status_display }}</td>
-                <td>{{ workorder.assigned_to }}</td>
+                <td>{{ workorder.created_by.first_name }} {{ workorder.created_by.last_name }}</td>
                 <td>{{ workorder.cam_approval }}</td>
-                <td>{{ workorder.created_by }}</td>
+                <td>{{ workorder.assigned_to.first_name }} {{ workorder.assigned_to.last_name }}</td>
                 <td>{{ workorder.hours }}</td>
                 <td>{{ workorder.billing }}</td>
                 <td>{{ workorder.approve_date|date:'d/m/Y' }}</td>

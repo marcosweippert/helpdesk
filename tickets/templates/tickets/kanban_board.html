@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Kanban Board - Tickets</title>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <style>
+        body {
+            font-family: 'Poppins', Arial, sans-serif;
+            padding: 5px;
+            font-size: 12px;
+            background-color: #f2f2f2;
+        }
+
+        h1 {
+            color: #007BFF; /* Cor corrigida para azul */
+            margin-bottom: 20px;
+            font-size: 24px; /* Tamanho corrigido para 24px */
+            padding: 5px;
+            border-bottom: 1px solid #ccc; /* Adicionada borda na parte inferior do h1 */
+        }
+
+        .kanban-board {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .column {
+            flex: 1;
+            background-color: #f2f2f2;
+            padding: 10px;
+            margin: 10px;
+            border-radius: 5px;
+        }
+
+        .column h2 {
+            text-align: center;
+            margin: 0;
+            color: #007BFF; /* Cor corrigida para azul */
+
+        }
+
+        .ticket {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        .ticket:hover {
+            background-color: #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Kanban Board - Tickets</h1>
+    <div class="kanban-board">
+        <div class="column" ondrop="drop(event)" ondragover="allowDrop(event)">
+            <h2>New</h2>
+            <div class="ticket" draggable="true" ondragstart="drag(event)">Ticket 1</div>
+            <div class="ticket" draggable="true" ondragstart="drag(event)">Ticket 2</div>
+        </div>
+        <div class="column" ondrop="drop(event)" ondragover="allowDrop(event)">
+            <h2>Open</h2>
+            <div class="ticket" draggable="true" ondragstart="drag(event)">Ticket 1</div>
+            <div class="ticket" draggable="true" ondragstart="drag(event)">Ticket 2</div>
+        </div>
+        <div class="column" ondrop="drop(event)" ondragover="allowDrop(event)">
+            <h2>In Progress</h2>
+            <div class="ticket" draggable="true" ondragstart="drag(event)">Ticket 3</div>
+            <div class="ticket" draggable="true" ondragstart="drag(event)">Ticket 4</div>
+        </div>
+        <div class="column" ondrop="drop(event)" ondragover="allowDrop(event)">
+            <h2>Closed</h2>
+            <div class="ticket" draggable="true" ondragstart="drag(event)">Ticket 5</div>
+            <div class="ticket" draggable="true" ondragstart="drag(event)">Ticket 6</div>
+        </div>
+    </div>
+
+    <script>
+        function allowDrop(event) {
+            event.preventDefault();
+        }
+
+        function drag(event) {
+            event.dataTransfer.setData("text", event.target.innerText);
+        }
+
+        function drop(event) {
+            event.preventDefault();
+            const data = event.dataTransfer.getData("text");
+            event.target.appendChild(document.querySelector(`.ticket:contains('${data}')`));
+            // Adicione aqui a lógica para atualizar o status do ticket no backend
+        }
+    </script>
+</body>
+</html>

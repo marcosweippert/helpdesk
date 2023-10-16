@@ -70,12 +70,13 @@
                 <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
                         <h6 class="collapse-header">Tickets Settings:</h6>
-                        <a class="collapse-item" href="{% url 'ticket_create' %}">Create New Ticket</a>
-                        <a class="collapse-item" href="{% url 'ticket_list_all_closed' %}">All Closed Tickets</a>
-                        <a class="collapse-item" href="{% url 'ticket_list_all_closed' %}">All Closed Tickets</a>
+                        <a class="collapse-item" href="{% url 'ticket_create' %}">New Ticket</a>
                         <a class="collapse-item" href="{% url 'ticket_list_all_open' %}">All Open Tickets</a>
                         <a class="collapse-item" href="{% url 'ticket_list' %}">All Tickets</a>
-                        <a class="collapse-item" href="#">Cards</a>
+                        <a class="collapse-item" href="{% url 'ticket_list_my_open' %}">My Open Tickets</a>
+                        <a class="collapse-item" href="{% url 'ticket_list_my_closed' %}">My Closed Tickets</a>
+
+                        <a class="collapse-item" href="#">Kanban Board</a>
                     </div>
                 </div>
             </li>
@@ -179,9 +180,9 @@
                     data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
                         <h6 class="collapse-header">Custom Payroll:</h6>
-                        <a class="collapse-item" href="{% url 'changes_upload' %}">Changes Upload</a>
-                        <a class="collapse-item" href="{% url 'delete_changes' %}">Delete Changes</a>
-                        <a class="collapse-item" href="{% url 'upload_generate' %}">Chages Generate</a>
+                        <a class="collapse-item" href="{% url 'changes_upload' %}">Bulk Charge</a>
+                        <a class="collapse-item" href="{% url 'delete_changes' %}">Delete Changes Pay Period</a>
+                        <a class="collapse-item" href="{% url 'upload_generate' %}">Changes Generate Bulk</a>
                     </div>
                 </div>
             </li>
