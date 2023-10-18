@@ -95,6 +95,7 @@ urlpatterns = [
 
     path('upload_generate/', views.upload_generate, name='upload_generate'),
 
+    path('tickets/delete/', views.delete_tickets, name='delete_tickets'),
 
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

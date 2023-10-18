@@ -686,7 +686,40 @@ def ticket_close(request, ticket_id):
     # Redireciona de volta para a lista de tickets após o fechamento
     return redirect('ticket_list_all_open')
 
+def delete_tickets_by_id(ticket_ids):
+    ticket_ids = ticket_ids.split(',')
 
+    deleted_tickets = []
+    failed_tickets = []
+
+    for ticket_id in ticket_ids:
+        if '-' in ticket_id:
+            start, end = map(int, ticket_id.split('-'))
+            for id in range(start, end + 1):
+                try:
+                    ticket = Ticket.objects.get(pk=id)
+                    ticket.delete()
+                    deleted_tickets.append(id)
+                except Ticket.DoesNotExist:
+                    failed_tickets.append(id)
+        else:
+            try:
+                ticket = Ticket.objects.get(pk=int(ticket_id))
+                ticket.delete()
+                deleted_tickets.append(int(ticket_id))
+            except Ticket.DoesNotExist:
+                failed_tickets.append(int(ticket_id))
+
+    return deleted_tickets, failed_tickets
+
+def delete_tickets(request):
+    if request.method == 'POST':
+        ticket_ids = request.POST.get('ticket_ids', '')
+        deleted_tickets, _ = delete_tickets_by_id(ticket_ids)
+
+        return redirect('ticket_list')
+    else:
+        return render(request, 'tickets/delete_tickets_form.html')
 
 def company_list(request):
 
@@ -1285,7 +1318,7 @@ def changes_upload(request):
         form = ChangesUploadForm(request.POST, request.FILES)
         if form.is_valid():
             excel_file = request.FILES['excel_file']
-            company = form.cleaned_data['company'].id  # Obtém o ID da empresa selecionada
+            company = form.cleaned_data['company'].id
             result_message = changes_data(excel_file, company)
 
             return render(request, 'validation/changes_upload.html', {'form': form, 'result_message': result_message})
@@ -1302,23 +1335,29 @@ def extract_date_from_pay_period(pay_period):
 
 def convert_to_date(date_str):
     try:
-        # Verifica se a string de data não é NaN (Not a Number)
         if not pd.isna(date_str):
             return datetime.strptime(str(date_str), '%Y-%m-%d').date()
     except ValueError:
-        pass  # A string de data não pôde ser convertida
+        pass
 
-    return None  # Retorna None para datas inválidas ou NaN
+    return None
 
 def convert_to_decimal(decimal_str):
     try:
-        # Verifica se a string de número não é NaN (Not a Number)
         if not pd.isna(decimal_str):
-            return float(decimal_str)  # Converte a string em um número decimal
+            return float(decimal_str)
     except ValueError:
-        pass  # A string de número não pôde ser convertida
+        pass
 
-    return None  # Retorna None para valores inválidos ou NaN
+    return None
+
+def convert_to_int(integer_str):
+    try:
+        if not pd.isna(integer_str):
+            return int(integer_str)
+    except ValueError:
+        pass
+    return None
 
 def changes_data(file_path, company_id):
     try:
@@ -1371,6 +1410,7 @@ def changes_data(file_path, company_id):
             unit = convert_to_decimal(row['Unit'])
             rate = convert_to_decimal(row['Rate'])
             icp_eepr_id = row['ICP EEPR ID'] if not pd.isna(row['ICP EEPR ID']) else 0
+            icp_payroll_payelement = convert_to_int(row['ICP Payroll PayElement'])
 
             ChangesValidation.objects.create(
                 Payroll_Name=row['Payroll Name'],
@@ -1391,7 +1431,7 @@ def changes_data(file_path, company_id):
                 Termination_Date=termination_date,
                 Comments=row['Comments'],
                 ICP_EEPR_ID=icp_eepr_id,
-                ICP_Payroll_PayElement=row['ICP Payroll PayElement'],
+                ICP_Payroll_PayElement=icp_payroll_payelement,
                 ICP_Pay_Element_Code=row['ICP Pay Element Code'],
                 company=company
             )

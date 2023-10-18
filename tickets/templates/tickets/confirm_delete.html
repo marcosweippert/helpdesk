@@ -1,0 +1,6 @@
+<form method="post" action="{% url 'confirm_delete_ticket' ticket.id %}">
+    {% csrf_token %}
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password">
+    <button type="submit">Confirm</button>
+</form>

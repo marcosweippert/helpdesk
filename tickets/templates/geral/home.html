@@ -11,7 +11,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>Helpdesk</title>
+    <title>SLA Services - Helpdesk</title>
 
     <!-- Custom fonts for this template-->
     <link href="{% static 'vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet" type="text/css">
@@ -39,7 +39,7 @@
             <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{% url 'home' %}">
                 <div class="sidebar-brand-icon rotate-n-15">
                 </div>
-                <div class="sidebar-brand-text mx-3">Helpdesk</div>
+                <div class="sidebar-brand-text mx-3">SLA Services | Helpdesk</div>
             </a>
 
             <!-- Divider -->
@@ -75,6 +75,8 @@
                         <a class="collapse-item" href="{% url 'ticket_list' %}">All Tickets</a>
                         <a class="collapse-item" href="{% url 'ticket_list_my_open' %}">My Open Tickets</a>
                         <a class="collapse-item" href="{% url 'ticket_list_my_closed' %}">My Closed Tickets</a>
+                        <a class="collapse-item" href="{% url 'delete_tickets' %}">Delete Tickets</a>
+                        
 
                         <a class="collapse-item" href="#">Kanban Board</a>
                     </div>

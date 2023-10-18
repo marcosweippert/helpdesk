@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delete Tickets</title>
+</head>
+<body>
+    <h1>Delete Tickets</h1>
+    <form method="post" action="{% url 'delete_tickets' %}">
+        {% csrf_token %}
+        <label for="ticket_ids">Enter ticket IDs (comma-separated or in the format 'start-end'): </label>
+        <input type="text" name="ticket_ids" id="ticket_ids" required>
+        <button type="submit">Delete</button>
+    </form>
+</body>
+</html>
