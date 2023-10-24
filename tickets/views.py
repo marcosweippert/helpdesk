@@ -861,6 +861,10 @@ def create_work_order(request):
             if work_order.type == 'RSA billing':
                 work_order.billing = 'No'
 
+            work_order.created_at = make_aware(datetime.now())
+
+            work_order.sla_date = sla_calculation(work_order.created_at, work_order.priority)
+
             work_order.save()
             return redirect('analyze_work_order')
         else:
@@ -890,6 +894,7 @@ def details_workorder(request, workorder_id):
 
     return render(request, 'workorder/details_workorder.html', context)
 
+import logging
 @login_required
 def analyze_work_order(request):
     if request.method == 'POST':
@@ -898,11 +903,14 @@ def analyze_work_order(request):
         billing = request.POST.get('billing')
         workorder = Workorder.objects.get(id=workorder_id)
 
+        logger = logging.getLogger(__name__)
+        logger.info('Saving work order %d', workorder.id)
 
         if request.user.is_cam:
             if cam_approval == 'Approve':
                 workorder.status = 'In Progress'
                 workorder.cam_approval = 'Approved'
+                workorder.department = 'Operation'
                 workorder.billing = billing
                 workorder.approve_date = now()
                 workorder.save()
@@ -927,6 +935,25 @@ def analyze_work_order(request):
 
     return render(request, 'workorder/analyze_workorder.html', context)
 
+#nessa função é para criar um ticket automaticamente quando a WO for aprovada pelo CAM e vai para Execute
+@receiver(post_save, sender=Workorder)
+def create_tickets(sender, instance, created, **kwargs):
+    logger = logging.getLogger(__name__)
+    logger.info('Creating ticket for work order %d', instance.id)
+
+    if created and instance.cam_approval == 'Approved':
+        Ticket.objects.create(
+            title=f'WO - Execute #{instance.id}',
+            description=f'Hi, this is an automatic ticket to execute WO approved.',
+            priority='Medium',
+            assigned_to=instance.assigned_to,
+            created_by=instance.created_by,
+            company=instance.company,
+            department='Operation',
+            type='execute',
+            sla_date=instance.sla_date,
+        )
+
 
 @login_required
 def execute_work_order(request):
@@ -946,8 +973,6 @@ def execute_work_order(request):
     }
 
     return render(request, 'workorder/execute_workorder.html', context)
-
-
 
 @login_required
 def rework_work_order(request):
@@ -969,7 +994,6 @@ def rework_work_order(request):
     }
 
     return render(request, 'workorder/rework_workorder.html', context)
-
 
 @login_required
 def work_order_dashboard(request):
@@ -1042,33 +1066,6 @@ def report_workorder(request):
     }
     return render(request, 'workorder/report_workorder.html', context)
 
-
-
-#nessa função é para criar um ticket automaticamente quando a WO for aprovada pelo CAM e vai para Execute
-@receiver(post_save, sender=Workorder)
-def create_tickets(sender, instance, created, **kwargs):
-    if created and instance.cam_approval == 'Approved':
-    
-        # Mapeamento das atividades para os títulos
-        activity_titles = {
-            'execute': f'WO - Execute #{instance.id}',
-        }
-        cam = instance.created_by
-        analyst = instance.assigned_to
-        ticket_sla_date = instance.sla_date
-        
-        for activity, title in activity_titles.items():
-            Ticket.objects.create(
-                title=title,
-                description=f'Hi, this is an automatic ticket to execute WO approved.',
-                priority='Medium',
-                assigned_to=analyst,
-                created_by=cam,
-                company=instance.company,
-                department='Operation',
-                type=activity,
-                sla_date=getattr(instance, f'{activity}_date', ticket_sla_date),
-            )
 
 
 # Função para validar arquivo XML de NFe
@@ -1298,7 +1295,6 @@ def invoice_finance_approval(request):
 
     return render(request, 'nfes/invoice_finance_approval.html', context)
 
-
 def create_bank(request):
     if request.method == 'POST':
         form = BankForm(request.POST)
@@ -1309,9 +1305,6 @@ def create_bank(request):
         form = BankForm()
     
     return render(request, 'finance/create_bank.html', {'form': form})
-
-
-
 
 def changes_upload(request):
     if request.method == 'POST':

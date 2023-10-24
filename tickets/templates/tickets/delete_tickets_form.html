@@ -1,6 +1,170 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <title>Open Ticket</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Poppins', Arial, sans-serif;
+            padding: 5px;
+            font-size: 12px;
+            background-color: #f2f2f2;
+        }
+
+        h1 {
+            color: #007BFF; /* Cor azul para o título */
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        form {
+            width: 400px;
+            margin: 0 auto;
+        }
+
+        input[type="text"],
+        textarea,
+        select,
+        input[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        textarea {
+            resize: vertical;
+            height: 150px;
+        }
+
+        input[type="submit"] {
+            background-color: #007BFF; /* Cor azul para o botão */
+            color: #fff; /* Cor do texto do botão */
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #0056b3; /* Cor mais escura do azul ao passar o mouse */
+        }
+
+        .material-icons {
+            font-size: 18px;
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+
+        /* Botão menor */
+        .btn-small {
+            font-size: 12px;
+            padding: 0 10px;
+            height: 24px;
+            line-height: 24px;
+        }
+
+        /* Estilos para seguir o Material Design */
+        a, button {
+            color: #007BFF; /* Cor do link e do botão */
+            cursor: pointer;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+
+        .btn {
+            background-color: #007BFF; /* Cor de fundo do botão */
+            color: #fff; /* Cor do texto do botão */
+            border-radius: 4px; /* Borda arredondada do botão */
+            transition: background-color 0.2s;
+            padding: 10px 20px; /* Espaçamento interno do botão */
+            margin-right: 10px; /* Espaçamento direita para separar os botões */
+        }
+
+        .btn:hover {
+            background-color: #0056b3; /* Cor de fundo do botão ao passar o mouse */
+        }
+
+        /* Botão menor */
+        .btn-small {
+            font-size: 12px;
+            padding: 0 10px;
+            height: 24px;
+            line-height: 24px;
+        }
+
+        /* Botão secundário com estilo diferente */
+        .btn-secondary {
+            background-color: #007BFF; /* Cor de fundo do botão */
+            color: #fff; /* Cor do texto do botão */
+            border-radius: 4px; /* Borda arredondada do botão */
+            transition: background-color 0.2s;
+            padding: 10px 20px; /* Espaçamento interno do botão */
+            margin-right: 10px; /* Espaçamento direita para separar os botões */
+        }
+
+        .btn-secondary:hover {
+            background-color: #333; /* Cor de fundo do botão secundário ao passar o mouse */
+        }
+        /* Estilos para a Caixa de Informações do SLA */
+        .sla-info {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            padding-top: 100px;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        .sla-info-content {
+            background-color: #f2f2f2;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 30%;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        .sla-info h3 {
+            color: #007BFF;
+        }
+
+        .sla-info p {
+            margin: 10px 0;
+        }
+
+        .sla-info-close {
+            color: #888;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .sla-info-close:hover,
+        .sla-info-close:focus {
+            color: #000;
+        }
+
+
+        .sla-info-icon {
+            font-size: 18px;
+            cursor: pointer;
+            vertical-align: middle;
+            margin-right: 5px;
+            color: #007BFF;
+        }
+
+    </style>
+</head>
     <title>Delete Tickets</title>
 </head>
 <body>

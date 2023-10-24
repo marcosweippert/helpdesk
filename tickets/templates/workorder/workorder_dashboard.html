@@ -173,6 +173,8 @@
                 <th>Department</th>
                 <th>Type</th>
                 <th>Status</th>
+                <th>Created at</th>
+                <th>SLA</th>
                 <th>Analyst</th>
                 <th>CAM Approval</th>
                 <th>CAM</th>
@@ -187,13 +189,15 @@
             <tr>
                 <td>
                     <a href="{% url 'details_workorder' workorder.id %}" class="btn-small">
-                        <span class="material-icons">info</span> Details
+                         Details
                     </a>
                 </td>
                 <td>{{ workorder.company }}</td>
                 <td>{{ workorder.get_department_display }}</td>
                 <td>{{ workorder.type }}</td>
                 <td>{{ workorder.get_status_display }}</td>
+                <td>{{ workorder.created_at|date:'d/m/Y H:i' }}</td>
+                <td>{{ workorder.sla_date|date:'d/m/Y H:i' }}</td>
                 <td>{{ workorder.created_by.first_name }} {{ workorder.created_by.last_name }}</td>
                 <td>{{ workorder.cam_approval }}</td>
                 <td>{{ workorder.assigned_to.first_name }} {{ workorder.assigned_to.last_name }}</td>

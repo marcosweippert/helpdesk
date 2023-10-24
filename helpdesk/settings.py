@@ -144,3 +144,28 @@ EMAIL_RECIPIENT = 'sla.ticket.2.0@gmail.com'
 
 LOGIN_URL = '/login/'
 LOGOUT_REDIRECT_URL = 'home'
+
+# settings.py
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',  # Defina o nível de log apropriado (DEBUG, INFO, WARNING, ERROR, etc.)
+            'class': 'logging.FileHandler',
+            'filename': 'workrder_log_file.log',  # Nome do arquivo de log
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'helpdesk': {  # Substitua 'yourapp' pelo nome do seu aplicativo
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}

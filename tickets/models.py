@@ -194,6 +194,7 @@ class Company(models.Model):
     cam_backup = models.ForeignKey(CustomUser, related_name='company_cams_backup', on_delete=models.CASCADE, default='10')
     analyst = models.ForeignKey(CustomUser, related_name='company_analysts', on_delete=models.CASCADE, default='10',  null=True)
     analyst_backup = models.ForeignKey(CustomUser, related_name='company_analysts_backup', on_delete=models.CASCADE, default='10')
+    budget_hour = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=0.0)
 
     def __str__(self):
         return self.name
