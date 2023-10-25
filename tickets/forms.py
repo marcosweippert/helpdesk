@@ -98,3 +98,10 @@ class ChangesUploadForm(forms.Form):
         widget=forms.ClearableFileInput(attrs={'accept': '.xlsx, .xls'})
     )
     company = forms.ModelChoiceField(queryset=Company.objects.all(), label='Selecione a Empresa')
+
+class PayElementsUploadForm(forms.Form):
+    excel_file = forms.FileField(
+        label='Selecione o arquivo CSV',
+        widget=forms.ClearableFileInput(attrs={'accept': '.csv'})
+    )
+    company = forms.ModelChoiceField(queryset=Company.objects.all(), label='Selecione a Empresa')

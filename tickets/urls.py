@@ -42,7 +42,6 @@ urlpatterns = [
     path('driver_check', views.driver_check, name='driver_check'),
     path('invoice_finance_approval/', views.invoice_finance_approval, name='invoice_finance_approval'),
 
-
     path('tickets/', views.ticket_list, name='ticket_list'),
     path('tickets/<int:ticket_id>/', views.ticket_detail, name='ticket_detail'),
     path('tickets/create/', views.ticket_create, name='ticket_create'),
@@ -54,7 +53,7 @@ urlpatterns = [
     path('closed_tickets/', views.ticket_list_all_closed, name='ticket_list_all_closed'),
     path('open_tickets/', views.ticket_list_all_open, name='ticket_list_all_open'),
     path('open_tickets_report/', views.open_tickets_report_xlsx, name='open_tickets_report_xlsx'),
-
+    path('tickets/delete/', views.delete_tickets, name='delete_tickets'),
 
     path('companies/', views.company_list, name='company_list'),
     path('companies/<int:company_id>/', views.company_detail, name='company_detail'),
@@ -82,20 +81,15 @@ urlpatterns = [
     path('workorder/<int:workorder_id>/', views.details_workorder, name='details_workorder'),
 
     path('driver_register/', views.driver_registration, name='driver_registration'),
-
-
-
     path('auth_cpf/', views.auth_cpf, name='auth_cpf'),
-
     path('create_bank/', views.create_bank, name='create_bank'),
 
     path('changes_upload/', views.changes_upload, name='changes_upload'),
-
     path('delete_changes/', views.delete_changes, name='delete_changes'),
-
     path('upload_generate/', views.upload_generate, name='upload_generate'),
 
-    path('tickets/delete/', views.delete_tickets, name='delete_tickets'),
+    path('pay_elements_upload/', views.pay_elements_upload, name='pay_elements_upload'),
+    
 
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

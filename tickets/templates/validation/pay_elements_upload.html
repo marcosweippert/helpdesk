@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Changes Upload</title>
+    <title>Pay Elements Upload</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
     
@@ -111,23 +111,21 @@
         }
     </style>
 </head>
-    <meta charset="UTF-8">
-    <title>Changes Upload</title>
-</head>
 <body>
-    <h1>Changes Upload</h1>
-    <form method="post" action="{% url 'changes_upload' %}" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Enviar</button>      
-    </form>    
-    {% if result_message %}
-    <p>{{ result_message }}</p>
-    {% endif %}
+    <h1>Pay Elements Upload</h1>
+    <form method="post" action="{% url 'pay_elements_upload' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Enviar</button>      
+        </form>    
+        {% if result_message %}
+        <p>{{ result_message }}</p>
+        {% endif %}
 
-      <a href="{% url 'home' %}" class="btn btn-secondary"> <!-- Estilo diferente para o botão de voltar -->
+    <a href="{% url 'home' %}" class="btn btn-secondary"> <!-- Estilo diferente para o botão de voltar -->
         <i class="material-icons">arrow_back</i> <!-- Ícone de voltar -->
         Voltar para a página inicial
     </a>
 </body>
+
 </html>

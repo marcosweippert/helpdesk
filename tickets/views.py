@@ -879,6 +879,9 @@ def create_work_order(request):
         'form': form,
         'companies': companies,
         'users': users,
+        'department': 'Operation',
+        'type': 'Work Order',
+
     }
 
     return render(request, 'workorder/create_workorder.html', context)
@@ -937,11 +940,8 @@ def analyze_work_order(request):
 
 #nessa função é para criar um ticket automaticamente quando a WO for aprovada pelo CAM e vai para Execute
 @receiver(post_save, sender=Workorder)
-def create_tickets(sender, instance, created, **kwargs):
-    logger = logging.getLogger(__name__)
-    logger.info('Creating ticket for work order %d', instance.id)
-
-    if created and instance.cam_approval == 'Approved':
+def create_tickets(sender, instance, **kwargs):
+    if instance.cam_approval == 'Approved':
         Ticket.objects.create(
             title=f'WO - Execute #{instance.id}',
             description=f'Hi, this is an automatic ticket to execute WO approved.',
@@ -950,10 +950,9 @@ def create_tickets(sender, instance, created, **kwargs):
             created_by=instance.created_by,
             company=instance.company,
             department='Operation',
-            type='execute',
+            type='Work Order',
             sla_date=instance.sla_date,
         )
-
 
 @login_required
 def execute_work_order(request):
@@ -1598,4 +1597,75 @@ def write_csv(response, header, data):
         writer.writerow(row)
 
 
+def pay_elements_upload(request):
+    companies = Company.objects.all() 
+    
+    if request.method == 'POST':
+        form = ChangesUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            csv_file = request.FILES['csv_file']
+            company = form.cleaned_data['company']
+            result_message = pay_elements_data(csv_file, company)
 
+            return render(request, 'validation/pay_elements_upload.html', {'form': form, 'result_message': result_message})
+    else:
+
+        form = ChangesUploadForm()
+
+    return render(request, 'validation/pay_elements_upload.html', {'form': form, 'companies': companies})
+def pay_elements_data(file_path, company_id):
+    try:
+        df = pd.read_csv(file_path)
+
+        column_mapping = {
+            'Payroll Name': 'Payroll Name',
+            'Pay Period': 'Pay Period',
+            'Payroll Pay Element': 'Payroll Pay Element',
+            'Employee ID': 'Employee ID',
+            'Amount': 'Amount',
+            'Number': 'Number',
+            'Unit Code': 'Unit Code',
+            'Unit': 'Unit',
+            'Rate': 'Rate',
+            'ICP Pay Element Code': 'ICP Pay Element Code',
+            'Local ID': 'Local ID',
+            'ICP Payroll Name': 'ICP Payroll Name',
+        }
+
+        df.rename(columns=column_mapping, inplace=True)
+
+        required_columns = list(column_mapping.values())
+        missing_columns = [col for col in required_columns if col not in df.columns]
+
+        if missing_columns:
+            return f"Colunas ausentes: {', '.join(missing_columns)}"
+
+        company = Company.objects.get(id=company_id)
+
+        for _, row in df.iterrows():
+            pay_period = row['Pay Period']
+            amount = row['Amount']
+            number = row['Number']
+            unit = row['Unit']
+            rate = row['Rate']
+            ICP_Pay_Element_Code = row['ICP Pay Element Code']
+
+            ChangesValidation.objects.create(
+                Payroll_Name=row['Payroll Name'],
+                Employee_ID=row['Employee ID'],
+                Pay_Period=pay_period,
+                Amount=amount,
+                Number=number,
+                Unit_Code=row['Unit Code'],
+                Unit=unit,
+                Rate=rate,
+                Local_ID=row['Local ID'],
+                ICP_Pay_Element_Code=ICP_Pay_Element_Code,
+                company=company,
+                ICP_Payroll_Name=row['ICP Payroll Name'],
+            )
+
+        return f"Dados importados com sucesso! Registros importados: {len(df)} (Payroll Name: {', '.join(df['Payroll Name'].unique())}, Pay Period: {', '.join(df['Pay Period'].unique())})"
+
+    except Exception as e:
+        return f"Erro ao importar os dados: {str(e)}"

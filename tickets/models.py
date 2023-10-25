@@ -411,7 +411,7 @@ class AuthCpf(models.Model):
     def __str__(self):
         return self.cpf
     
-class ChangesValidation(models.Model):
+class ChangesValidation(models.Model): 
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     Payroll_Name = models.CharField(max_length=50)
     Employee_Name = models.CharField(max_length=50, null=False)
@@ -433,3 +433,22 @@ class ChangesValidation(models.Model):
     ICP_EEPR_ID = models.IntegerField(blank=True, null=True)
     ICP_Payroll_PayElement = models.CharField(max_length=50, blank=True, null=True)
     ICP_Pay_Element_Code = models.CharField(max_length=10, blank=True, null=True)
+
+
+class PayElements(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    payroll_name = models.CharField(max_length=255)
+    pay_period = models.DateField(blank=True, null=True)
+    payroll_pay_element = models.CharField(max_length=255)
+    employee_id = models.IntegerField(blank=True, null=True)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    number = models.IntegerField()
+    unit_code = models.CharField(max_length=255)
+    unit = models.CharField(max_length=255)
+    rate = models.DecimalField(max_digits=10, decimal_places=2)
+    icp_pay_element_code = models.CharField(max_length=255)
+    local_id = models.IntegerField(blank=True, null=True)
+    icp_payroll_name = models.CharField(max_length=255)
+    
+    def __str__(self):
+        return self.payroll_name
